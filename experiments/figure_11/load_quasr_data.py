@@ -5,42 +5,32 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 
-def figure_11_data(quasr_file='QUASR.pkl', dofs_file='dofs.npy', return_pca=False, plot=False):
+def figure_11_data(return_pca=False, standardize=True, plot=False, X_new=None, save_path=None):
     """
-    Loads and filters stellarator configuration data based on physical constraints,
-    then performs 2D PCA dimensionality reduction.
-
-    Filters data for:
-    - Mean iota ≈ 2.30 (0.1% tolerance)
-    - Aspect ratio ≈ 12 (10% tolerance)
-    - nfp = 4
-    - helicity = 1
-
+    Performs PCA on fusion reactor data filtered by specific constraints 
+    (mean_iota ≈ 2.30, aspect_ratio ≈ 12, nfp = 4, helicity = 1).
+    
     Parameters
     ----------
-   quasr_file : str, optional (default='QUASR.pkl')
-       Path to pickle file containing stellarator parameters DataFrame
-   dofs_file : str, optional (default='dofs.npy')
-       Path to numpy file containing degrees of freedom data
-    return_pca : bool, optional (default=False)
-        If True, returns PCA-transformed data (2D)
-        If False, returns original filtered data
-    plot : bool, optional (default=False)
-        If True, creates scatter plot of data in PCA space
-
+    return_pca : bool, optional
+        If True, returns PCA-transformed data instead of original data
+    standardize : bool, optional
+        Flag for data standardization (currently inactive)
+    plot : bool, optional
+        If True, generates and saves PCA scatter plot
+    X_new : array-like, optional
+        New data points to transform with PCA
+    save_path : str, optional
+        Path to save plot if plotting enabled
+        
     Returns
     -------
     numpy.ndarray
-        PCA-transformed (n_samples, 2) array if return_pca=True
-        Original filtered (n_samples, n_features) array if return_pca=False
-
-    Notes
-    -----
-    Requires 'QUASR.pkl' and 'dofs.npy' in working directory
+        PCA-transformed or original filtered data based on return_pca
     """
     # to load the data set
-    Y_init = pd.read_pickle(quasr_file) # y-values
-    X_init = np.load(dofs_file) # x-values
+    Y_init = pd.read_pickle('QUASR.pkl') # y-values
+    X_init = np.load('dofs.npy') # x-values
 
     Y_init = Y_init.reset_index(drop=True)
 
@@ -52,17 +42,41 @@ def figure_11_data(quasr_file='QUASR.pkl', dofs_file='dofs.npy', return_pca=Fals
 
     pca = PCA(n_components=2, svd_solver='full')
     X_pca = pca.fit_transform(X)
-
+    
     # PCA components
     mean = pca.mean_
     dir1 = pca.components_[0]
     dir2 = pca.components_[1]
 
+    if X_new is not None:
+        X_new = X_new.numpy()
+        if return_pca:
+            X_new_pca = X_new
+        else:
+            X_new_pca = X_new @ np.vstack((dir1, dir2)).T
+
+    # if standardize:
+    #     # lb = np.min(X, axis=0)
+    #     # ub = np.max(X, axis=0)
+    #     # X = (X - lb)/(ub - lb)
+
+    #     lb_pca = np.min(X_pca, axis=0)
+    #     ub_pca = np.max(X_pca, axis=0)
+    #     X_pca = (X_pca - lb_pca)/(ub_pca - lb_pca)
+
+    #     if X_new is not None:
+    #         # X_new = (X_new - lb)/(ub - lb)
+    #         X_new_pca = (X_new_pca - lb_pca)/(ub_pca - lb_pca)
+
     if plot:
+        # plot the PCA
         fig,ax = plt.subplots()
-        plt.scatter(X_pca[:,0], X_pca[:,1])
+        plt.scatter(X_pca[:,0], X_pca[:,1], color='tab:blue')
+        if X_new is not None:
+            plt.scatter(X_new_pca[:, 0], X_new_pca[:, 1], color='tab:orange')
         ax.set_aspect('equal')
-        plt.show()
+        #plt.show()
+        fig.savefig(save_path) 
 
     if return_pca:
         return X_pca

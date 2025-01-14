@@ -1,90 +1,21 @@
-#src: https://github.com/tanelp/tiny-diffusion/blob/master
 import torch
 from torch import nn
 from torch.nn import functional as F
-from torch.utils.data import TensorDataset, DataLoader, Dataset, ConcatDataset
-import torchvision
-
+from torch.utils.data import DataLoader
 import numpy as np
-import pandas as pd
-#from sklearn.datasets import make_moons
-
 import argparse
 import os
-from tqdm.auto import tqdm
-import matplotlib.pyplot as plt
-import pickle
-import sys
-#SOTA models: https://github.com/lucidrains/denoising-diffusion-pytorch/tree/main
 #from denoising_diffusion_pytorch import Unet
-import random
-from sklearn.decomposition import PCA
-from celluloid import Camera
 from diffusion_for_fusion.ddpm_fusion import (GaussianDiffusion,
                                               plot_image_denoising,
                                               set_seed,
                                               InputDataset,
                                               MLP
                                               )
+from load_quasr_data import figure_11_data
+#src: https://github.com/tanelp/tiny-diffusion/blob/master
+#SOTA models: https://github.com/lucidrains/denoising-diffusion-pytorch/tree/main
 
-
-
-
-def figure_11_data(return_pca=False, standardize=True, plot=False, X_new=None, save_path=None):
-    # to load the data set
-    Y_init = pd.read_pickle('QUASR.pkl') # y-values
-    X_init = np.load('dofs.npy') # x-values
-
-    Y_init = Y_init.reset_index(drop=True)
-
-    # subset figure 11 dat
-    idx = ((np.abs(Y_init.mean_iota - 2.30)/2.30 < 0.001) & (np.abs(Y_init.aspect_ratio - 12)/12 < 0.1)
-        & (Y_init.nfp == 4) & (Y_init.helicity == 1))
-    Y = Y_init[idx].mean_iota.values
-    X = X_init[idx]
-
-    pca = PCA(n_components=2, svd_solver='full')
-    X_pca = pca.fit_transform(X)
-    
-    # PCA components
-    mean = pca.mean_
-    dir1 = pca.components_[0]
-    dir2 = pca.components_[1]
-
-    if X_new is not None:
-        X_new = X_new.numpy()
-        if return_pca:
-            X_new_pca = X_new
-        else:
-            X_new_pca = X_new @ np.vstack((dir1, dir2)).T
-
-    # if standardize:
-    #     # lb = np.min(X, axis=0)
-    #     # ub = np.max(X, axis=0)
-    #     # X = (X - lb)/(ub - lb)
-
-    #     lb_pca = np.min(X_pca, axis=0)
-    #     ub_pca = np.max(X_pca, axis=0)
-    #     X_pca = (X_pca - lb_pca)/(ub_pca - lb_pca)
-
-    #     if X_new is not None:
-    #         # X_new = (X_new - lb)/(ub - lb)
-    #         X_new_pca = (X_new_pca - lb_pca)/(ub_pca - lb_pca)
-
-    if plot:
-        # plot the PCA
-        fig,ax = plt.subplots()
-        plt.scatter(X_pca[:,0], X_pca[:,1], color='tab:blue')
-        if X_new is not None:
-            plt.scatter(X_new_pca[:, 0], X_new_pca[:, 1], color='tab:orange')
-        ax.set_aspect('equal')
-        #plt.show()
-        fig.savefig(save_path) 
-
-    if return_pca:
-        return X_pca
-    else:
-        return X
 
 def get_dataset(dataset='fig11', return_pca=None):
     '''
