@@ -272,6 +272,29 @@ class GaussianDiffusion(nn.Module): #rewrite it into a nn module class
         noise_pred = self.model(noisy, timesteps)
         return noise_pred
 
+def init_diffusion_model_from_config(config, input_dim):
+    if config.model_type == 'MLP':
+        model = MLP(
+            hidden_size=config.hidden_size,
+            hidden_layers=config.hidden_layers,
+            emb_size= config.embedding_size,
+            time_emb= config.time_embedding,
+            input_dim = input_dim)
+    elif config.model_type == 'Unet': #TODO: more powerful backbone from the ddpm_pytorch repo
+        model = Unet(
+            dim = 64,
+            dim_mults = (1, 2, 4, 8),
+            channels = 1,
+            flash_attn = True
+        )
+        
+    diffusion = GaussianDiffusion(
+        model, 
+        num_timesteps=config.num_timesteps,
+        beta_schedule=config.beta_schedule)
+
+    return diffusion, model
+
 def count_num_params(model):
     total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     return total_params

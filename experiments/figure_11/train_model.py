@@ -5,12 +5,14 @@ from torch.utils.data import DataLoader
 import numpy as np
 import argparse
 import os
+import pickle
 #from denoising_diffusion_pytorch import Unet
 from diffusion_for_fusion.ddpm_fusion import (GaussianDiffusion,
                                               plot_image_denoising,
                                               set_seed,
                                               InputDataset,
-                                              MLP
+                                              MLP,
+                                              init_diffusion_model_from_config
                                               )
 from load_quasr_data import figure_11_data
 #src: https://github.com/tanelp/tiny-diffusion/blob/master
@@ -69,26 +71,29 @@ for key, value in args_dict.items():
 dataset, X = get_dataset(config.dataset, return_pca=config.return_pca)    
 dataloader = DataLoader(dataset, batch_size=config.train_batch_size, shuffle=True, drop_last=True)
 input_dim = 2 if config.return_pca else 661
-if config.model_type == 'MLP':
-    model = MLP(
-        hidden_size=config.hidden_size,
-        hidden_layers=config.hidden_layers,
-        emb_size= config.embedding_size,
-        time_emb= config.time_embedding,
-        input_dim = input_dim)
-elif config.model_type == 'Unet': #TODO: more powerful backbone from the ddpm_pytorch repo
-    model = Unet(
-        dim = 64,
-        dim_mults = (1, 2, 4, 8),
-        channels = 1,
-        flash_attn = True
-    )
-print(model)
+# if config.model_type == 'MLP':
+#     model = MLP(
+#         hidden_size=config.hidden_size,
+#         hidden_layers=config.hidden_layers,
+#         emb_size= config.embedding_size,
+#         time_emb= config.time_embedding,
+#         input_dim = input_dim)
+# elif config.model_type == 'Unet': #TODO: more powerful backbone from the ddpm_pytorch repo
+#     model = Unet(
+#         dim = 64,
+#         dim_mults = (1, 2, 4, 8),
+#         channels = 1,
+#         flash_attn = True
+#     )
+# print(model)
 
-diffusion = GaussianDiffusion(
-    model, 
-    num_timesteps=config.num_timesteps,
-    beta_schedule=config.beta_schedule)
+# diffusion = GaussianDiffusion(
+#     model, 
+#     num_timesteps=config.num_timesteps,
+#     beta_schedule=config.beta_schedule)
+
+diffusion, model = init_diffusion_model_from_config(config, input_dim)
+print(model)
 
 if torch.cuda.device_count() > 0:
     device = 'cuda:0'
@@ -148,15 +153,25 @@ for epoch in range(config.num_epochs):
             sample = sample.to('cpu')
         frames.append(sample) #global epoch changes
 
-print("Saving model...")
-os.makedirs(outdir, exist_ok=True)
-torch.save(diffusion.state_dict(), f"{outdir}/model.pth")
+print("")
+print("Output directory:", outdir)
 
-print("Saving images...")
+outfilename = f"{outdir}/model.pth"
+print("Saving model to:", outfilename)
+os.makedirs(outdir, exist_ok=True)
+torch.save(diffusion.state_dict(), outfilename)
+
 imgdir = f"{outdir}/images"
+print("Saving images to:", imgdir)
 os.makedirs(imgdir, exist_ok=True)
 figure_11_data(return_pca=config.return_pca, plot=True, X_new=sample, save_path=f"{imgdir}/generated.png")
 plot_image_denoising(imgdir, frames, basis=None, seed=99, img_train=X)
 
-print("Saving loss as numpy array...")
-np.save(f"{outdir}/loss.npy", np.array(losses))
+outfilename = f"{outdir}/loss.npy"
+print("Saving loss as numpy array to:", outfilename)
+np.save(outfilename, np.array(losses))
+
+outfilename = f"{outdir}/config.pickle"
+print("Saving config as pickle file to:", outfilename)
+data = {'config': config, 'input_dim':input_dim}
+pickle.dump(data, open(outfilename,"wb"))
