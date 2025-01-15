@@ -6,6 +6,7 @@ import numpy as np
 import argparse
 import os
 import pickle
+from uuid import uuid4
 #from denoising_diffusion_pytorch import Unet
 from diffusion_for_fusion.ddpm_fusion import (GaussianDiffusion,
                                               plot_image_denoising,
@@ -51,11 +52,15 @@ config = parser.parse_args()
 # log experiment configuration
 args_dict = vars(config)
 
+# tag for run
+run_uuid = uuid4()
+
 # logging
 if config.model_type == 'MLP':
-    outdir = f"ddpm_tiny_exps/{config.dataset}_{config.num_timesteps}_hidden={config.hidden_size}_layer={config.hidden_layers}_schedule={config.beta_schedule}_epoch={config.num_epochs}"
+    outdir = f"output/{config.dataset}_{config.num_timesteps}_hidden={config.hidden_size}_layer={config.hidden_layers}_schedule={config.beta_schedule}_epoch={config.num_epochs}"
 else:
-    outdir = f"ddpm_tiny_exps/{config.dataset}_{config.num_timesteps}_Unet"
+    outdir = f"output/{config.dataset}_{config.num_timesteps}_Unet"
+outdir += f"/run_uuid_{run_uuid}"
 
 # logdir = f"{outdir}/logs"
 # os.makedirs(logdir, exist_ok=True)
