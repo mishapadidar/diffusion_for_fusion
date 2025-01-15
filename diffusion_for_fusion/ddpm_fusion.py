@@ -271,6 +271,29 @@ class GaussianDiffusion(nn.Module): #rewrite it into a nn module class
     def backward(self, noisy, timesteps):
         noise_pred = self.model(noisy, timesteps)
         return noise_pred
+    
+    def sample(self, eval_batch_size, input_dim):
+        """Sample x_0 from the diffusion process.
+
+        Args:
+            eval_batch_size (int): number of points to sample
+            input_dim (int): dimension of input i.e. dim of x_T
+
+        Returns:
+            sample: (eval_batch_size, input_dim) array of samples
+        """
+        # TODO: push all arrays to correct device
+        # input_shape = list(batch.shape)
+        # input_shape[0] = eval_batch_size
+        input_shape = [eval_batch_size, input_dim]
+        sample = torch.randn(input_shape)#.to(device)
+        timesteps = list(range(self.num_timesteps))[::-1] #reverse sampling 
+        for i, t in enumerate(timesteps):
+            t = torch.from_numpy(np.repeat(t, eval_batch_size)).long()#.to(device)
+            with torch.no_grad():
+                residual = self.backward(sample, t)
+            sample = self.step(residual, t[0], sample)
+        return sample
 
 def init_diffusion_model_from_config(config, input_dim):
     if config.model_type == 'MLP':

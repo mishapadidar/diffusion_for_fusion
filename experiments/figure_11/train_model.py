@@ -145,15 +145,19 @@ for epoch in range(config.num_epochs):
         # generate data with the model to later visualize the learning process
         diffusion.model.eval()
         set_seed(config.seed)
-        input_shape = list(batch.shape)
-        input_shape[0] = config.eval_batch_size
-        sample = torch.randn(input_shape).to(device)
-        timesteps = list(range(diffusion.num_timesteps))[::-1] #reverse sampling 
-        for i, t in enumerate(timesteps):
-            t = torch.from_numpy(np.repeat(t, config.eval_batch_size)).long().to(device)
-            with torch.no_grad():
-                residual = diffusion.backward(sample, t)
-            sample = diffusion.step(residual, t[0], sample)
+        
+        # input_shape = list(batch.shape)
+        # input_shape[0] = config.eval_batch_size
+        # sample = torch.randn(input_shape).to(device)
+        # timesteps = list(range(diffusion.num_timesteps))[::-1] #reverse sampling 
+        # for i, t in enumerate(timesteps):
+        #     t = torch.from_numpy(np.repeat(t, config.eval_batch_size)).long().to(device)
+        #     with torch.no_grad():
+        #         residual = diffusion.backward(sample, t)
+        #     sample = diffusion.step(residual, t[0], sample)
+
+        sample = diffusion.sample(config.eval_batch_size, input_dim)
+
         if device != 'cpu':
             sample = sample.to('cpu')
         frames.append(sample) #global epoch changes
