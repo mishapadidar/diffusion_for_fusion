@@ -5,7 +5,8 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 
-def figure_11_data(return_pca=False, standardize=True, plot=False, X_new=None, save_path=None):
+def figure_11_data(return_pca=False, standardize=True, plot=False, X_new=None, save_path=None,
+                   return_pca_components=False):
     """
     Performs PCA on fusion reactor data filtered by specific constraints 
     (mean_iota ≈ 2.30, aspect_ratio ≈ 12, nfp = 4, helicity = 1).
@@ -79,7 +80,10 @@ def figure_11_data(return_pca=False, standardize=True, plot=False, X_new=None, s
         fig.savefig(save_path) 
 
     if return_pca:
-        return X_pca
+        if return_pca_components:
+            return X_pca, dir1, dir2
+        else:
+            return X_pca
     else:
         return X
     
