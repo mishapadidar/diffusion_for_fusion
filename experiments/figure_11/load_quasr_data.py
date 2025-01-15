@@ -81,7 +81,7 @@ def figure_11_data(return_pca=False, standardize=True, plot=False, X_new=None, s
 
     if return_pca:
         if return_pca_components:
-            return X_pca, dir1, dir2
+            return X_pca, pca
         else:
             return X_pca
     else:
