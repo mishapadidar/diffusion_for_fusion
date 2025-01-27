@@ -29,6 +29,40 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
 
+def to_standard(X):
+    """Standardize a dataset without affecting relative scaling.
+        return (X - mean) / std
+    std is the largest standard deviation and mean is the mean
+    of the features.
+
+    Args:
+        X (array, tensor): array or tensor of shape (n points, dim)
+
+    Returns: tuple (X, mean, std)
+        X (array, tensor): array or tensor of shape (n points, dim)
+        mean (array, tensor): array or tensor of shape (dim, )
+        std (float): standard deviation
+    """
+    mean = X.mean(axis=0)
+    std = X.std(axis=0).max()
+    X = (X-mean)/std
+    return X, mean, std
+
+def from_standard(X, mean, std):
+    """Un-standardize a dataset without affecting relative scaling.
+        return X * std + mean
+    This inverts the to_standard() function
+
+    Args:
+        X (array, tensor): array or tensor of shape (n points, dim)
+        mean (array, tensor): array or tensor of shape (dim, )
+        std (float): standard deviation
+
+    Returns:
+        (array, tensor): array or tensor of shape (n points, dim)
+    """
+    return X * std + mean
+
 class InputDataset(Dataset):
     def __init__(self, data: torch.tensor):
         self.data = data
@@ -330,8 +364,9 @@ def plot_image_denoising(imgdir, imgs, basis=None, seed=99, img_train=None):
         if img_train is not None:
           ax.scatter(img_train[:,0], img_train[:,1], color='tab:blue')
         ax.scatter(img[:,0], img[:,1], color='tab:orange')  
-        ax.set_xlim([-1,1])
-        ax.set_ylim([-1,1])
+        ax.set_xlim([np.min(img_train[:,0]),np.max(img_train[:,0])])
+        ax.set_ylim([np.min(img_train[:,1]),np.max(img_train[:,1])])
+        # ax.set_aspect('equal')
         camera.snap()
     animation = camera.animate()
     animation.save(f'{imgdir}/animation_seed={seed}.gif', writer='PillowWriter', fps=20)   
