@@ -5,79 +5,43 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 
-def figure_11_data(return_pca=False, standardize=True, plot=False, X_new=None, save_path=None,
-                   return_pca_components=False):
+def load_quasr_data(return_pca=False, return_pca_components=False, fig="fig11"):
     """
-    Performs PCA on fusion reactor data filtered by specific constraints 
-    (mean_iota ≈ 2.30, aspect_ratio ≈ 12, nfp = 4, helicity = 1).
+    Loads and processes QUASR dataset, optionally performing PCA transformation.
     
-    Parameters
-    ----------
-    return_pca : bool, optional
-        If True, returns PCA-transformed data instead of original data
-    standardize : bool, optional
-        Flag for data standardization (currently inactive)
-    plot : bool, optional
-        If True, generates and saves PCA scatter plot
-    X_new : array-like, optional
-        New data points to transform with PCA
-    save_path : str, optional
-        Path to save plot if plotting enabled
-        
-    Returns
-    -------
-    numpy.ndarray
-        PCA-transformed or original filtered data based on return_pca
+    Parameters:
+        return_pca (bool): If True, returns PCA-transformed data instead of raw
+        return_pca_components (bool): If True, returns PCA object along with transformed data
+        fig (str): Dataset subset to use - either "fig9" or "fig11"
+    
+    Returns:
+        array-like: Raw data (X) or PCA-transformed data (X_pca)
+        PCA object: Only if return_pca_components=True
     """
+
     # to load the data set
     Y_init = pd.read_pickle('QUASR.pkl') # y-values
     X_init = np.load('dofs.npy') # x-values
 
     Y_init = Y_init.reset_index(drop=True)
 
-    # subset figure 11 dat
-    idx = ((np.abs(Y_init.mean_iota - 2.30)/2.30 < 0.001) & (np.abs(Y_init.aspect_ratio - 12)/12 < 0.1)
-        & (Y_init.nfp == 4) & (Y_init.helicity == 1))
+    if fig == "fig11":
+        # subset figure 11 dat
+        idx = ((np.abs(Y_init.mean_iota - 2.30)/2.30 < 0.001) & (np.abs(Y_init.aspect_ratio - 12)/12 < 0.1)
+            & (Y_init.nfp == 4) & (Y_init.helicity == 1))
+    elif fig == "fig9":
+        # subset figure 9 dat
+        idx = ((np.abs(Y_init.mean_iota - 1.1)/1.1 < 0.001) & (np.abs(Y_init.aspect_ratio - 12)/12 < 0.01)
+            & (Y_init.nfp == 4) & (Y_init.helicity == 1))
+    else:
+        raise ValueError("fig can be one of fig9 or fig11")
+    
     Y = Y_init[idx].mean_iota.values
     X = X_init[idx]
 
+    # take PCA
     pca = PCA(n_components=2, svd_solver='full')
     X_pca = pca.fit_transform(X)
-    
-    # PCA components
-    mean = pca.mean_
-    dir1 = pca.components_[0]
-    dir2 = pca.components_[1]
-
-    if X_new is not None:
-        X_new = X_new.numpy()
-        if return_pca:
-            X_new_pca = X_new
-        else:
-            X_new_pca = X_new @ np.vstack((dir1, dir2)).T
-
-    # if standardize:
-    #     # lb = np.min(X, axis=0)
-    #     # ub = np.max(X, axis=0)
-    #     # X = (X - lb)/(ub - lb)
-
-    #     lb_pca = np.min(X_pca, axis=0)
-    #     ub_pca = np.max(X_pca, axis=0)
-    #     X_pca = (X_pca - lb_pca)/(ub_pca - lb_pca)
-
-    #     if X_new is not None:
-    #         # X_new = (X_new - lb)/(ub - lb)
-    #         X_new_pca = (X_new_pca - lb_pca)/(ub_pca - lb_pca)
-
-    if plot:
-        # plot the PCA
-        fig,ax = plt.subplots()
-        plt.scatter(X_pca[:,0], X_pca[:,1], color='tab:blue')
-        if X_new is not None:
-            plt.scatter(X_new_pca[:, 0], X_new_pca[:, 1], color='tab:orange')
-        ax.set_aspect('equal')
-        #plt.show()
-        fig.savefig(save_path) 
 
     if return_pca:
         if return_pca_components:
@@ -87,6 +51,44 @@ def figure_11_data(return_pca=False, standardize=True, plot=False, X_new=None, s
     else:
         return X
     
+def plot_pca_data(X, X_new=None, is_pca=False, save_path=""):
+    """
+    Plots 2D PCA visualization of input data, optionally comparing two datasets.
+    
+    Parameters:
+        X (array-like): Primary dataset to visualize
+        X_new (array-like, optional): Secondary dataset to compare against X
+        is_pca (bool): If True, assumes X is already PCA-transformed
+        save_path (str): If provided, saves plot to this filepath
+    
+    Returns:
+        None. Displays or saves matplotlib plot.
+    """
+
+    if not is_pca:
+        # take PCA
+        pca = PCA(n_components=2, svd_solver='full')
+        X_pca = pca.fit_transform(X)
+        if X_new is not None:
+            X_new_pca = pca.transform(X_new)
+    else:
+        X_pca = X
+        X_new_pca = X_new
+
+    # plot the PCA
+    fig,ax = plt.subplots()
+    plt.scatter(X_pca[:,0], X_pca[:,1], color='tab:blue')
+    if X_new is not None:
+        plt.scatter(X_new_pca[:, 0], X_new_pca[:, 1], color='tab:orange')
+    ax.set_aspect('equal')
+
+    # plt.show()
+
+    if save_path != "":
+        fig.savefig(save_path) 
+    
 
 if __name__ == "__main__":
-    figure_11_data(return_pca=False, plot=True)
+    X = load_quasr_data(return_pca=True,fig_num=9)
+    X_new = X[:10]
+    plot_pca_data(X, X_new = X_new, is_pca=True)

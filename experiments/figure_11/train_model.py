@@ -7,29 +7,17 @@ import argparse
 import os
 import pickle
 from uuid import uuid4
-#from denoising_diffusion_pytorch import Unet
-from diffusion_for_fusion.ddpm_fusion import (GaussianDiffusion,
-                                              plot_image_denoising,
+from sklearn.decomposition import PCA
+
+from diffusion_for_fusion.ddpm_fusion import (plot_image_denoising,
                                               set_seed,
                                               InputDataset,
-                                              MLP,
-                                              init_diffusion_model_from_config
+                                              init_diffusion_model_from_config,
+                                              to_standard,
                                               )
-from load_quasr_data import figure_11_data
+from load_quasr_data import load_quasr_data, plot_pca_data
 #src: https://github.com/tanelp/tiny-diffusion/blob/master
 #SOTA models: https://github.com/lucidrains/denoising-diffusion-pytorch/tree/main
-
-
-def get_dataset(dataset='fig11', return_pca=None):
-    '''
-    return Fig.11 dataset of https://arxiv.org/pdf/2409.04826
-    '''
-    if dataset == 'fig11':
-      X = figure_11_data(return_pca=return_pca)
-    else:
-      raise NotImplementedError
-
-    return InputDataset(torch.from_numpy(X.astype(np.float32))), X
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_type", type=str, default="MLP", choices=["MLP",'Unet'])
@@ -49,7 +37,6 @@ parser.add_argument("--seed", type=int, default=999, help='set seed of sampling'
 parser.add_argument('--return_pca', action='store_true', help='generate the pca coefficient')
 
 config = parser.parse_args()
-# log experiment configuration
 args_dict = vars(config)
 
 # tag for run
@@ -62,40 +49,23 @@ else:
     outdir = f"output/{config.dataset}_{config.num_timesteps}_Unet"
 outdir += f"/run_uuid_{run_uuid}"
 
-# logdir = f"{outdir}/logs"
-# os.makedirs(logdir, exist_ok=True)
-
-# old_stdout = sys.stdout
-# log_file = open(f"{logdir}/r={config.r}_lr={config.learning_rate}_hidden={config.hidden_size}.log","w")
-# sys.stdout = log_file
-# print configs
 print('Experiment Setting:')
 for key, value in args_dict.items():
     print(f"| {key}: {value}")
 
-dataset, X = get_dataset(config.dataset, return_pca=config.return_pca)    
-dataloader = DataLoader(dataset, batch_size=config.train_batch_size, shuffle=True, drop_last=True)
-input_dim = 2 if config.return_pca else 661
-# if config.model_type == 'MLP':
-#     model = MLP(
-#         hidden_size=config.hidden_size,
-#         hidden_layers=config.hidden_layers,
-#         emb_size= config.embedding_size,
-#         time_emb= config.time_embedding,
-#         input_dim = input_dim)
-# elif config.model_type == 'Unet': #TODO: more powerful backbone from the ddpm_pytorch repo
-#     model = Unet(
-#         dim = 64,
-#         dim_mults = (1, 2, 4, 8),
-#         channels = 1,
-#         flash_attn = True
-#     )
-# print(model)
 
-# diffusion = GaussianDiffusion(
-#     model, 
-#     num_timesteps=config.num_timesteps,
-#     beta_schedule=config.beta_schedule)
+X = load_quasr_data(return_pca=config.return_pca, fig=config.dataset)
+
+# standardize the data
+X, mean, std = to_standard(X)
+
+# a pca object for plotting
+pca = PCA(n_components=2, svd_solver='full')
+pca = pca.fit(X)
+
+input_dim = np.shape(X)[1]
+dataset = InputDataset(torch.from_numpy(X.astype(np.float32)))
+dataloader = DataLoader(dataset, batch_size=config.train_batch_size, shuffle=True, drop_last=True)
 
 diffusion, model = init_diffusion_model_from_config(config, input_dim)
 print(model)
@@ -157,10 +127,17 @@ for epoch in range(config.num_epochs):
         #     sample = diffusion.step(residual, t[0], sample)
 
         sample = diffusion.sample(config.eval_batch_size, input_dim)
-
         if device != 'cpu':
             sample = sample.to('cpu')
+
+        if not config.return_pca:
+            # compute the PCA components for plotting
+            sample = torch.tensor(pca.transform(sample))
+
         frames.append(sample) #global epoch changes
+
+# sample some data for plotting
+sample = diffusion.sample(config.eval_batch_size, input_dim)
 
 print("")
 print("Output directory:", outdir)
@@ -173,7 +150,13 @@ torch.save(diffusion.state_dict(), outfilename)
 imgdir = f"{outdir}/images"
 print("Saving images to:", imgdir)
 os.makedirs(imgdir, exist_ok=True)
-figure_11_data(return_pca=config.return_pca, plot=True, X_new=sample, save_path=f"{imgdir}/generated.png")
+
+# plot the sampled data in the PCA plane
+plot_pca_data(X, X_new=sample.numpy(), is_pca=config.return_pca, save_path=f"{imgdir}/generated.png")
+
+# plot the movie in the PCA plane
+if not config.return_pca:
+    X = pca.transform(X)
 plot_image_denoising(imgdir, frames, basis=None, seed=99, img_train=X)
 
 outfilename = f"{outdir}/loss.npy"
