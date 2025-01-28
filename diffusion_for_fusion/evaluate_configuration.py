@@ -30,9 +30,13 @@ def evaluate_configuration(x, nfp, mpol, ntor, helicity_n=0, vmec_input=None, st
     if plot:
         surf.plot(show=True)
 
-    qs = QuasisymmetryRatioResidual(vmec, surfaces=np.linspace(0.1,1,10,endpoint=False), helicity_n=helicity_n)
-
     is_success = True
+
+    try:
+        qs = QuasisymmetryRatioResidual(vmec, surfaces=np.linspace(0.1,1,10,endpoint=False), helicity_n=helicity_n)
+    except:
+        is_success = False
+        
     try:
         res = qs.compute()
     except:
