@@ -21,7 +21,7 @@ from load_quasr_data import load_quasr_data, plot_pca_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_type", type=str, default="MLP", choices=["MLP",'Unet'])
-parser.add_argument("--dataset", type=str, default="fig11", choices=["fig11","full"])
+parser.add_argument("--dataset", type=str, default="fig11", choices=["fig11","fig9"])
 parser.add_argument("--train_batch_size", type=int, default=128)
 parser.add_argument("--eval_batch_size", type=int, default=128)
 parser.add_argument("--num_epochs", type=int, default=200)
@@ -54,13 +54,14 @@ for key, value in args_dict.items():
     print(f"| {key}: {value}")
 
 
-X = load_quasr_data(return_pca=config.return_pca, fig=config.dataset)
+X, _ = load_quasr_data(return_pca=config.return_pca, fig=config.dataset)
 
 # standardize the data
 X, mean, std = to_standard(X)
 
-# a pca object for plotting
+# a PCA object for plotting
 pca = PCA(n_components=2, svd_solver='full')
+pca = pca.fit(X)
 pca = pca.fit(X)
 
 input_dim = np.shape(X)[1]

@@ -5,13 +5,12 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 
-def load_quasr_data(return_pca=False, return_pca_components=False, fig="fig11"):
+def load_quasr_data(return_pca=False, fig="fig11"):
     """
     Loads and processes QUASR dataset, optionally performing PCA transformation.
     
     Parameters:
         return_pca (bool): If True, returns PCA-transformed data instead of raw
-        return_pca_components (bool): If True, returns PCA object along with transformed data
         fig (str): Dataset subset to use - either "fig9" or "fig11"
     
     Returns:
@@ -44,12 +43,9 @@ def load_quasr_data(return_pca=False, return_pca_components=False, fig="fig11"):
     X_pca = pca.fit_transform(X)
 
     if return_pca:
-        if return_pca_components:
-            return X_pca, pca
-        else:
-            return X_pca
+        return X_pca, pca
     else:
-        return X
+        return X, pca
     
 def plot_pca_data(X, X_new=None, is_pca=False, save_path=""):
     """
