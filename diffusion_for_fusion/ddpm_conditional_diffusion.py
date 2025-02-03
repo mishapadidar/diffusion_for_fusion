@@ -66,7 +66,8 @@ class ConditionalGaussianDiffusion(nn.Module): #rewrite it into a nn module clas
                  beta_start=0.0001,
                  beta_end=0.02,
                  beta_schedule="linear"):
-        
+        # TODO: generalize this class so that it can run in without a condition as well.
+
         super().__init__()
 
         self.model = model

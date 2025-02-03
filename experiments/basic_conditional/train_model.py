@@ -7,13 +7,13 @@ import argparse
 import os
 import pickle
 from uuid import uuid4
-# from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA
 from diffusion_for_fusion.ddpm_fusion import (plot_image_denoising,
                                               set_seed,
                                               to_standard,
                                               )
 from diffusion_for_fusion.ddpm_conditional_diffusion import init_conditional_diffusion_model_from_config, generate_conditions_for_eval
-from load_quasr_data import load_quasr_data, plot_pca_data
+from load_quasr_data import plot_pca_data, prepare_data_from_config
 
 
 parser = argparse.ArgumentParser()
@@ -29,14 +29,16 @@ parser.add_argument("--input_emb_size", type=int, default=64)
 parser.add_argument("--time_emb_size", type=int, default=64)
 parser.add_argument("--cond_emb_size", type=int, default=64)
 
+parser.add_argument("--input_head", action='store_true') # bool
 parser.add_argument("--hidden_size", type=int, default=512)
 parser.add_argument("--hidden_layers", type=int, default=3)
 parser.add_argument("--time_emb_type", type=str, default="sinusoidal", choices=["sinusoidal", "learnable", "linear", "zero"])
-parser.add_argument("--input_head", action='store_true') # bool
+
+parser.add_argument('--use_pca', action='store_true', help='use the PCA data') # bool
+parser.add_argument('--pca_size', type=int, default=10, help='number of PCA dimensions') # bool
 
 parser.add_argument("--save_images_step", type=int, default=1000)
 parser.add_argument("--seed", type=int, default=999, help='set seed of sampling')
-parser.add_argument('--use_pca', action='store_true', help='use the PCA data') # bool
 
 config = parser.parse_args()
 args_dict = vars(config)
@@ -44,22 +46,20 @@ args_dict = vars(config)
 # tag for run
 run_uuid = uuid4()
 
-
 # logging
-outdir = f"output/{config.conditions}"
+outdir = f"output/{'_'.join(config.conditions)}"
 outdir += f"/run_uuid_{run_uuid}"
 
 print('Experiment Setting:')
 for key, value in args_dict.items():
     print(f"| {key}: {value}")
 
-# X: (n, input_dim) array, Y_train: (n, cond_input_dim) array
-X_train, Y_train, pca = load_quasr_data(conditions=config.conditions ,return_pca=config.use_pca)
+# load, PCA, and standardize data
+X_train, _, _, Y_train, _, _, _ = prepare_data_from_config(config)
 
-# standardize the data
-X_train, X_mean, X_std = to_standard(X_train)
-Y_train, Y_mean, Y_std = to_standard(Y_train)
-
+# PCA for plotting in 2D data
+pca_plot = PCA(n_components=2, svd_solver='full')
+pca_plot = pca_plot.fit(X_train)
 
 input_dim = np.shape(X_train)[1]
 dataset = TensorDataset(torch.from_numpy(X_train.astype(np.float32)), torch.from_numpy(Y_train.astype(np.float32)))
@@ -117,7 +117,7 @@ for epoch in range(config.num_epochs):
         # print
         losses.append(loss.detach().item())
         global_step += 1
-        if (epoch % 100 == 0) :
+        if (global_step % 100 == 0) :
             print(f'epoch = {epoch}, step = {global_step}, loss = {losses[-1]}')
 
     # visualization
@@ -135,9 +135,8 @@ for epoch in range(config.num_epochs):
         if device != 'cpu':
             sample = sample.to('cpu')
 
-        if not config.use_pca:
-            # compute the PCA components for plotting
-            sample = torch.tensor(pca.transform(sample))
+        # project onto 2 dimensions for plotting
+        sample = torch.tensor(pca_plot.transform(sample))
 
         frames.append(sample)
 
@@ -158,11 +157,11 @@ print("Saving images to:", imgdir)
 os.makedirs(imgdir, exist_ok=True)
 
 # plot the sampled data in the PCA plane
-plot_pca_data(X_train, X_new=sample.numpy(), is_pca=config.use_pca, save_path=f"{imgdir}/generated.png")
+plot_pca_data(X_train, X_new=sample.numpy(), is_pca=False, save_path=f"{imgdir}/generated.png")
 
 # plot the movie in the PCA plane
 if not config.use_pca:
-    X_train = pca.transform(X_train)
+    X_train = pca_plot.transform(X_train)
 plot_image_denoising(imgdir, frames, basis=None, seed=99, img_train=X_train)
 
 outfilename = f"{outdir}/loss.npy"
