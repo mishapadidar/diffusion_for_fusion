@@ -8,7 +8,7 @@ from diffusion_for_fusion.evaluate_configuration import evaluate_configuration
 from load_quasr_data import prepare_data_from_config
 
 # full dimension data
-indir = "./output/mean_iota/run_uuid_520aaf36-ad18-4bb8-a2ba-dd662b8498f7"
+indir = "./output/mean_iota_aspect_ratio/run_uuid_4123533c-960a-411b-9ff0-2a990e3eb305"
 
 config_pickle = indir+"/config.pickle"
 model_path = indir+"/model.pth"
@@ -26,7 +26,7 @@ diffusion.eval()  # Set to evaluation mode
 model.eval()  # Set to evaluation mode
 
 # load, PCA, and standardize data
-X_train, X_mean, X_std, Y_train, Y_mean, Y_std, pca = prepare_data_from_config(config)# print(np.shape(X))
+X_train, X_mean, X_std, Y_train, Y_mean, Y_std, pca = prepare_data_from_config(config)
 print(X_train.shape)
 
 # sample some stellarators
@@ -38,12 +38,14 @@ samples =diffusion.sample(cond_eval)
 samples = samples.cpu().detach().numpy()
 
 # un-standardize samples for VMEC
+X_train = from_standard(X_train, X_mean, X_std)
 samples = from_standard(samples, X_mean, X_std)
 
 # convert to full size x for VMEC
 if config.use_pca:
     samples = pca.inverse_transform(samples)
-    X = pca.inverse_transform(X_train)
+    X_train = pca.inverse_transform(X_train)
+
 
 # destandardize cond_eval for comparison
 cond_eval = from_standard(cond_eval, Y_mean, Y_std)
@@ -68,6 +70,8 @@ for ii, xx in enumerate(samples):
 outdata = {}
 outdata['Y_samples'] = Y # evaluations
 outdata['X_samples'] = samples # raw samples
+outdata['Y_cond'] = cond_eval # target values of Y
+
 
 
 """ Project the samples onto the PCA plane then evaluate."""
@@ -101,29 +105,30 @@ pickle.dump(outdata, open(outfilename, "wb"))
 print("dumped data to", outfilename)
 
 
-""" Evaluate the actual dataset """
-idx = np.random.randint(0, len(X), n_samples)
-X = X[idx]
-# storage
-Y = np.zeros((n_samples, 3))
+# """ Evaluate the actual dataset """
 
-# evaluate the actual data
-for ii, xx in enumerate(X):
-    res = evaluate_configuration(x=xx,
-                        nfp=4,
-                        mpol=10,
-                        ntor=10,
-                        helicity_n=1,
-                        vmec_input="../../vmec_input_files/input.nfp4_QH_warm_start_high_res",
-                        # vmec_input="../../vmec_input_files/input.new_QH_andrew",
-                        plot=False)
-    Y[ii] = res
-    print(f"{ii})", res, cond_eval[ii].numpy())
+# idx = np.random.randint(0, len(X_train), n_samples)
+# X = X_train[idx]
+# # storage
+# Y = np.zeros((n_samples, 3))
 
-# save the data
-outdata = {}
-outdata['Y'] = Y # evaluations
-outdata['X'] = X # raw data
-outfilename = indir + "/evaluations_actual.pickle"
-pickle.dump(outdata, open(outfilename, "wb"))
-print("dumped data to", outfilename)
+# # evaluate the actual data
+# for ii, xx in enumerate(X):
+#     res = evaluate_configuration(x=xx,
+#                         nfp=4,
+#                         mpol=10,
+#                         ntor=10,
+#                         helicity_n=1,
+#                         vmec_input="../../vmec_input_files/input.nfp4_QH_warm_start_high_res",
+#                         # vmec_input="../../vmec_input_files/input.new_QH_andrew",
+#                         plot=False)
+#     Y[ii] = res
+#     print(f"{ii})", res, cond_eval[ii].numpy())
+
+# # save the data
+# outdata = {}
+# outdata['Y'] = Y # evaluations
+# outdata['X'] = X # raw data
+# outfilename = indir + "/evaluations_actual.pickle"
+# pickle.dump(outdata, open(outfilename, "wb"))
+# print("dumped data to", outfilename)
