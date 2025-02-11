@@ -182,10 +182,10 @@ class ConditionalGaussianDiffusion(nn.Module): #rewrite it into a nn module clas
         timesteps = list(range(self.num_timesteps))[::-1] # reverse sampling 
 
         # x_T
-        sample = torch.randn(input_shape)#.to(device)
+        sample = torch.randn(input_shape).to(condition.device)
         
         for i, t in enumerate(timesteps):
-            t = torch.from_numpy(np.repeat(t, batch_size)).long()#.to(device)
+            t = torch.from_numpy(np.repeat(t, batch_size)).long().to(condition.device)
             with torch.no_grad():
                 residual = self.backward(sample, t, condition)
             sample = self.step(residual, t[0], sample)
@@ -213,7 +213,7 @@ def init_conditional_diffusion_model_from_config(config, input_dim):
     return diffusion, model
 
 
-def generate_conditions_for_eval(conditions, batch_size: int = 64, from_train=True, seed=99, as_tensor=True):
+def generate_conditions_for_eval(conditions, batch_size: int = 64, from_train=True, seed=99, as_tensor=True, device='cpu'):
     """Generate a batch of conditions to be used for sampling from the diffusion model.
 
     Args:
@@ -241,6 +241,6 @@ def generate_conditions_for_eval(conditions, batch_size: int = 64, from_train=Tr
         evals = lb + (ub - lb) * np.random.uniform(size = (batch_size, cond_input_dim))
 
     if as_tensor:
-        evals = torch.from_numpy(evals.astype(np.float32))
+        evals = torch.from_numpy(evals.astype(np.float32)).to(device)
 
     return evals

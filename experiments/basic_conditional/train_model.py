@@ -70,9 +70,14 @@ print(model)
 
 if torch.cuda.device_count() > 0:
     device = 'cuda:0'
+elif torch.backends.mps.is_available():
+    device = torch.device("mps")
 else:
     device = 'cpu'
 diffusion = diffusion.to(device)
+
+print("")
+print("Using device:",device)
 
 optimizer = torch.optim.AdamW(
     diffusion.model.parameters(),
@@ -127,11 +132,11 @@ for epoch in range(config.num_epochs):
 
         # TODO: get from_train option from config
         # generate the conditions for sampling (config.eval_batch_size, cond_input_dim)
-        cond_eval = generate_conditions_for_eval(Y_train, batch_size = config.eval_batch_size, from_train=True, seed=config.seed, as_tensor = True)
+        cond_eval = generate_conditions_for_eval(Y_train, batch_size = config.eval_batch_size, from_train=True,
+                                                 seed=config.seed, as_tensor = True, device=device)
 
         # sample diffusion process
         sample = diffusion.sample(cond_eval)
-
         if device != 'cpu':
             sample = sample.to('cpu')
 
@@ -141,8 +146,11 @@ for epoch in range(config.num_epochs):
         frames.append(sample)
 
 # sample some data for plotting
-cond_eval = generate_conditions_for_eval(Y_train, batch_size = config.eval_batch_size, from_train=True, seed=config.seed, as_tensor = True)
+cond_eval = generate_conditions_for_eval(Y_train, batch_size = config.eval_batch_size, from_train=True,
+                                         seed=config.seed, as_tensor = True, device=device)
 sample = diffusion.sample(cond_eval)
+if device != 'cpu':
+    sample = sample.to('cpu')
 
 print("")
 print("Output directory:", outdir)
