@@ -73,7 +73,11 @@
     python setup.py build_ext
     python setup.py install
     ```
-9. Export the python path so that import statements work properly.
+9. Export the python path so that import statements work properly. The following will overwrite your PYTHONPATH.
     ```
     export PYTHONPATH="/Users/mpadidar/code/ml/diffusion_for_fusion"
+    ```
+    To append to your PYTHONPATH, use
+    ```
+    export PYTHONPATH="${PYTHONPATH}:/Users/mpadidar/code/ml/diffusion_for_fusion"
     ```
