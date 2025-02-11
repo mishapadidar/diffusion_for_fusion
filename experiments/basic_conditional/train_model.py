@@ -57,6 +57,8 @@ for key, value in args_dict.items():
 
 # load, PCA, and standardize data
 X_train, _, _, Y_train, _, _, _ = prepare_data_from_config(config)
+print("")
+print("Dataset shape", np.shape(X_train))
 
 # PCA for plotting in 2D data
 pca_plot = PCA(n_components=2, svd_solver='full')
@@ -67,6 +69,7 @@ dataset = TensorDataset(torch.from_numpy(X_train.astype(np.float32)), torch.from
 dataloader = DataLoader(dataset, batch_size=config.train_batch_size, shuffle=True, drop_last=True)
 
 diffusion, model = init_conditional_diffusion_model_from_config(config, input_dim)
+print("")
 print(model)
 
 if torch.cuda.device_count() > 0:
