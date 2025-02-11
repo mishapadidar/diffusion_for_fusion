@@ -3,6 +3,7 @@ from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
+import time
 import argparse
 import os
 import pickle
@@ -89,6 +90,7 @@ frames = []
 losses = []
 print("Training model...")
 for epoch in range(config.num_epochs):
+    t0 = time.time()
     diffusion.model.train()
 
     for step, (X_batch, cond_batch) in enumerate(dataloader):
@@ -144,6 +146,8 @@ for epoch in range(config.num_epochs):
         sample = torch.tensor(pca_plot.transform(sample))
 
         frames.append(sample)
+    t1 = time.time()
+    print(f"--> time: {t1 - t0:.2f} sec")
 
 # sample some data for plotting
 cond_eval = generate_conditions_for_eval(Y_train, batch_size = config.eval_batch_size, from_train=True,
