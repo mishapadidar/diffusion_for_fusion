@@ -29,7 +29,7 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
 
-def to_standard(X):
+def to_standard(X, mean=None, std=None):
     """Standardize a dataset without affecting relative scaling.
         return (X - mean) / std
     std is the largest standard deviation and mean is the mean
@@ -43,9 +43,10 @@ def to_standard(X):
         mean (array, tensor): array or tensor of shape (dim, )
         std (float): standard deviation
     """
-    mean = X.mean(axis=0)
-    std = X.std(axis=0).max()
-    X = (X-mean)/std
+    if mean is None:
+        mean = X.mean(axis=0)
+        std = X.std(axis=0).max()
+    X = (X - mean) / std
     return X, mean, std
 
 def from_standard(X, mean, std):
