@@ -68,11 +68,14 @@ def load_quasr_data(conditions):
 
     Y_init = Y_init.reset_index(drop=True)
 
-    # subset data
-    idx = ((Y_init.nfp == 4) & (Y_init.helicity == 1))
+    # # subset data
+    # idx = ((Y_init.nfp == 4) & (Y_init.helicity == 1))
     
-    Y = Y_init[idx][conditions].values
-    X = X_init[idx]
+    # Y = Y_init[idx][conditions].values
+    # X = X_init[idx]
+
+    Y = Y_init[conditions].values
+    X = X_init
 
     return X, Y
     
