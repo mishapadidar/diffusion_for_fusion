@@ -10,9 +10,19 @@ from load_quasr_data import prepare_data_from_config
 
 # # conditioned on (iota, aspect) for nfp=4, helicity=1;  trained on PCA-9
 # indir = "./output/mean_iota_aspect_ratio/run_uuid_4123533c-960a-411b-9ff0-2a990e3eb305"
-# conditioned on (iota, aspect, nfp, helicity); trained on PCA-9
-indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_da5a3230-deca-4709-a775-76b7365fbbd2"
+# # conditioned on (iota, aspect, nfp, helicity); trained on PCA-9
+# indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_da5a3230-deca-4709-a775-76b7365fbbd2"
+# conditioned on (iota, aspect, nfp, helicity); trained on PCA-50 w/ big model
+indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522"
 
+# conditions; fig9 uses (1.1, 12, 4, 1)
+n_samples = 128
+mean_iota = 1.5
+aspect_ratio = 14.0
+nfp = 4
+helicity = 1
+use_local_pca = True
+n_local_pca = 3
 
 config_pickle = indir+"/config.pickle"
 model_path = indir+"/model.pth"
@@ -33,23 +43,30 @@ model.eval()  # Set to evaluation mode
 X_train, X_mean, X_std, Y_train, Y_mean, Y_std, pca = prepare_data_from_config(config)
 print(X_train.shape)
 
-
-# TODO: set up evaluate for nfp, helicity not equal to (4,1)
 # subset the data
 Y_init = from_standard(Y_train, Y_mean, Y_std)
-# idx_subset = ((np.abs(Y_init[:,0] - 1.1)/1.1 < 0.001) & (np.abs(Y_init[:,1] - 12)/12 < 0.01) & 
-#               (Y_init[:,2] == 4) & (Y_init[:,3] == 1)) # fig 9
-idx_subset = ((Y_init[:,2] == 4) & (Y_init[:,3] == 1)) 
+idx_subset = ((np.abs(Y_init[:,0] - mean_iota)/mean_iota < 0.01) & (np.abs(Y_init[:,1] - aspect_ratio)/aspect_ratio < 0.01) & 
+              (Y_init[:,2] == 4) & (Y_init[:,3] == 1))
 X_train = X_train[idx_subset]
 Y_train = Y_train[idx_subset]
 
-# sample some stellarators
-n_samples = 128
-cond_eval = generate_conditions_for_eval(Y_train, batch_size = n_samples, from_train=False, seed=config.seed, as_tensor = True)
+# X_train may be empty now
+n_train = len(X_train)
 
-# make sure the integer features actually map to integers
-cond_eval_raw = from_standard(cond_eval, Y_mean, Y_std)
-cond_eval_raw[:,2:] = torch.round(cond_eval_raw[:,2:])
+# sample stellarators randomly
+# cond_eval = generate_conditions_for_eval(Y_train, batch_size = n_samples, from_train=False, seed=config.seed, as_tensor = True)
+# # make sure the integer features actually map to integers
+# cond_eval_raw = from_standard(cond_eval, Y_mean, Y_std)
+# cond_eval_raw[:,2:] = torch.round(cond_eval_raw[:,2:])
+# cond_eval, _, _ = to_standard(cond_eval_raw, Y_mean, Y_std)
+# cond_eval = cond_eval.type(torch.float32)
+
+# use only one condition
+cond_eval_raw = torch.zeros((n_samples, 4))
+cond_eval_raw[:,0] = mean_iota # iota
+cond_eval_raw[:,1] = aspect_ratio # aspect
+cond_eval_raw[:,2] = nfp # nfp
+cond_eval_raw[:,3] = helicity # helicity
 cond_eval, _, _ = to_standard(cond_eval_raw, Y_mean, Y_std)
 cond_eval = cond_eval.type(torch.float32)
 
@@ -58,28 +75,31 @@ samples = diffusion.sample(cond_eval)
 samples = samples.cpu().detach().numpy()
 
 # un-standardize samples for VMEC
-X_train = from_standard(X_train, X_mean, X_std)
 samples = from_standard(samples, X_mean, X_std)
+if n_train > 0:
+    X_train = from_standard(X_train, X_mean, X_std)
 
 # convert to full size x for VMEC
 if config.use_pca:
     samples = pca.inverse_transform(samples)
-    X_train = pca.inverse_transform(X_train)
+    if n_train > 0:
+        X_train = pca.inverse_transform(X_train)
 
-# remove noise
-pca = PCA(n_components=4, svd_solver='full')
-pca.fit_transform(X_train)
-samples = pca.transform(samples)
-samples = pca.inverse_transform(samples)
+# local PCA
+if use_local_pca:
+    pca = PCA(n_components=n_local_pca, svd_solver='full')
+    pca.fit_transform(samples)
+    samples = pca.transform(samples)
+    samples = pca.inverse_transform(samples)
 
 """ Plot the sampled configurations """
 
 # PCA for plotting in 2D data
 pca_plot = PCA(n_components=2, svd_solver='full')
-X_2d = pca_plot.fit_transform(X_train)
-samples_2d = pca_plot.transform(samples)
-
-plt.scatter(X_2d[:,0], X_2d[:,1], alpha=0.6, label='actual')
+samples_2d = pca_plot.fit_transform(samples)
+if n_train > 0:
+    X_2d = pca_plot.transform(X_train)
+    plt.scatter(X_2d[:,0], X_2d[:,1], alpha=0.6, label='actual')
 plt.scatter(samples_2d[:,0], samples_2d[:,1], alpha=0.6, label='diffusion')
 plt.legend(loc='upper right')
 plt.show()
@@ -92,85 +112,65 @@ cond_eval = from_standard(cond_eval, Y_mean, Y_std)
 # evaluate the samples
 Y = np.zeros((n_samples, 3))
 for ii, xx in enumerate(samples):
-
-    nfp = int(torch.round(cond_eval[ii,2]).item())
-    helicity = int(torch.round(cond_eval[ii,3]).item())
     res = evaluate_configuration(x=xx,
                         nfp=nfp,
                         mpol=10,
                         ntor=10,
                         helicity_n=helicity,
-                        vmec_input="../../vmec_input_files/input.nfp4_QH_warm_start_high_res",
+                        # vmec_input="../../vmec_input_files/input.nfp4_QH_warm_start_high_res",
+                        vmec_input="../../vmec_input_files/input.nfp4_torus",
                         # vmec_input="../../vmec_input_files/input.new_QH_andrew",
                         plot=False)
     Y[ii] = res
     print(f"{ii})", res, cond_eval[ii].numpy())
 
+# save the data
+outfilename = indir + f"/evaluations_samples_iota_{mean_iota}_aspect_{aspect_ratio}_nfp_{nfp}_helicity_{helicity}_local_pca_{use_local_pca}_{n_local_pca}.pickle"
 outdata = {}
 outdata['Y_samples'] = Y # evaluations
 outdata['X_samples'] = samples # raw samples
-outdata['Y_cond'] = cond_eval # target values of Y
+outdata['Y_conditions'] = cond_eval # target values of Y
+outdata['mean_iota'] = mean_iota
+outdata['aspect_ratio'] = aspect_ratio
+outdata['nfp'] = nfp
+outdata['helicity'] = helicity
+outdata['n_local_pca'] = n_local_pca
+outdata['use_local_pca'] = use_local_pca
+pickle.dump(outdata, open(outfilename, "wb"))
+print("dumped data to", outfilename)
 
 
-
-""" Project the samples onto the PCA plane then evaluate."""
-if not config.use_pca:
-
-    # project the samples onto the PCA plane
-    samples = pca.transform(samples)
-    samples = pca.inverse_transform(samples)
-
+""" Evaluate the actual dataset """
+if n_train > 0:
+    # random subset
+    idx = np.random.randint(0, len(X_train), n_samples)
+    X = X_train[idx]
+    # storage
     Y = np.zeros((n_samples, 3))
 
-    for ii, xx in enumerate(samples):
-        nfp = int(torch.round(cond_eval[ii,2]).item())
-        helicity = int(torch.round(cond_eval[ii,3]).item())
-
+    # evaluate the actual data
+    for ii, xx in enumerate(X):
         res = evaluate_configuration(x=xx,
                             nfp=nfp,
                             mpol=10,
                             ntor=10,
                             helicity_n=helicity,
-                            vmec_input="../../vmec_input_files/input.nfp4_QH_warm_start_high_res",
+                            # vmec_input="../../vmec_input_files/input.nfp4_QH_warm_start_high_res",
+                            vmec_input="../../vmec_input_files/input.nfp4_torus",
                             # vmec_input="../../vmec_input_files/input.new_QH_andrew",
                             plot=False)
         Y[ii] = res
-        print(f"{ii})", res, cond_eval[ii].numpy())
+        print(f"{ii})", res)
 
-    
-    outdata['Y_pca'] = Y # evaluations of projected samples
-    outdata['X_pca'] = samples # projected samples
-
-# save the data
-outfilename = indir + "/evaluations_samples.pickle"
-pickle.dump(outdata, open(outfilename, "wb"))
-print("dumped data to", outfilename)
-
-
-# """ Evaluate the actual dataset """
-
-# idx = np.random.randint(0, len(X_train), n_samples)
-# X = X_train[idx]
-# # storage
-# Y = np.zeros((n_samples, 3))
-
-# # evaluate the actual data
-# for ii, xx in enumerate(X):
-#     res = evaluate_configuration(x=xx,
-#                         nfp=4,
-#                         mpol=10,
-#                         ntor=10,
-#                         helicity_n=1,
-#                         vmec_input="../../vmec_input_files/input.nfp4_QH_warm_start_high_res",
-#                         # vmec_input="../../vmec_input_files/input.new_QH_andrew",
-#                         plot=False)
-#     Y[ii] = res
-#     print(f"{ii})", res, cond_eval[ii].numpy())
-
-# # save the data
-# outdata = {}
-# outdata['Y'] = Y # evaluations
-# outdata['X'] = X # raw data
-# outfilename = indir + "/evaluations_actual.pickle"
-# pickle.dump(outdata, open(outfilename, "wb"))
-# print("dumped data to", outfilename)
+    # save the data
+    outdata = {}
+    outdata['Y'] = Y # evaluations
+    outdata['X'] = X # raw data
+    outdata['mean_iota'] = mean_iota
+    outdata['aspect_ratio'] = aspect_ratio
+    outdata['nfp'] = nfp
+    outdata['helicity'] = helicity
+    outdata['n_local_pca'] = n_local_pca
+    outfilename = indir + f"/evaluations_actual_iota_{mean_iota}_aspect_{aspect_ratio}_nfp_{nfp}_helicity_{helicity}_local_pca_{use_local_pca}_{n_local_pca}.pickle"
+    pickle.dump(outdata, open(outfilename, "wb"))
+    print("dumped data to", outfilename)
