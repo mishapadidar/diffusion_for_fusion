@@ -12,13 +12,19 @@ from load_quasr_data import prepare_data_from_config
 # indir = "./output/mean_iota_aspect_ratio/run_uuid_4123533c-960a-411b-9ff0-2a990e3eb305"
 # # conditioned on (iota, aspect, nfp, helicity); trained on PCA-9
 # indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_da5a3230-deca-4709-a775-76b7365fbbd2"
-# conditioned on (iota, aspect, nfp, helicity); trained on PCA-50 w/ big model
-indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522"
+# # conditioned on (iota, aspect, nfp, helicity); trained on PCA-50 w/ big model
+# indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522"
+# conditioned on (iota, aspect, nfp, helicity); trained on full data
+# indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_6d0b93a0-238c-41bf-b794-5b6a467a2797"
+# # conditioned on (iota, aspect, nfp, helicity); trained on full data with bigger model
+# indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_c4793466-4f56-4860-b5d8-37d8aaef81f8"
+# # conditioned on (iota, aspect, nfp, helicity); trained on PCA-200 w/ big model
+indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_1844e921-bfbe-4de5-a002-4ab92a213e7c"
 
 # conditions; fig9 uses (1.1, 12, 4, 1)
-n_samples = 128
-mean_iota = 1.5
-aspect_ratio = 14.0
+n_samples = 256
+mean_iota = 1.1
+aspect_ratio = 12.0
 nfp = 4
 helicity = 1
 use_local_pca = True
