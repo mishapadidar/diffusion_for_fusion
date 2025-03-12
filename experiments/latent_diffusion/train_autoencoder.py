@@ -17,6 +17,7 @@ parser.add_argument("--train_batch_size", type=int, default=128)
 parser.add_argument("--num_epochs", type=int, default=200)
 parser.add_argument("--learning_rate", type=float, default=1e-3)
 parser.add_argument("--encoding_size", type=int, default=512)
+parser.add_argument("--encoding_base", type=int, default=2)
 parser.add_argument("--seed", type=int, default=999, help='set seed of sampling')
 
 config = parser.parse_args()
@@ -30,8 +31,9 @@ outdir = f"output"
 outdir += f"/run_{config.encoding_size}_uuid_{run_uuid}"
 
 # load and standardize data
-X_train, Y_train = load_quasr_data([])
+X_train, _ = load_quasr_data([])
 X_train, X_mean, X_std = to_standard(X_train)
+
 
 input_dim = np.shape(X_train)[1]
 dataset = TensorDataset(torch.from_numpy(X_train.astype(np.float32)))
@@ -41,7 +43,7 @@ print("")
 print("Dataset shape", np.shape(X_train))
 
 input_size = X_train.shape[1]  # Number of input features
-autoenc = Autoencoder(input_size, config.encoding_size)
+autoenc = Autoencoder(input_size, config.encoding_size, base=config.encoding_base)
 
 print("")
 print(autoenc)
@@ -89,7 +91,7 @@ for epoch in range(config.num_epochs):
         # print
         losses.append(loss.detach().item())
         global_step += 1
-        if (global_step % 100 == 0) :
+        if (global_step % 100 == 0):
             print(f'epoch = {epoch}, step = {global_step}, loss = {losses[-1]}')
 
 
