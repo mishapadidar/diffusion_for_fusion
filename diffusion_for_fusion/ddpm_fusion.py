@@ -49,6 +49,40 @@ def to_standard(X, mean=None, std=None):
     X = (X - mean) / std
     return X, mean, std
 
+def to_unit_cube(X, lb=None, ub=None):
+    """Map a dataset to the unit cube.
+        return (X - lb) / (ub - lb)
+
+    Args:
+        X (array, tensor): array or tensor of shape (n points, dim)
+        lb (array, tensor, optional): array or tensor of shape (dim, )
+        ub (array, tensor, optional): array or tensor of shape (dim, )
+    
+    Returns: tuple (X, mean, std)
+        X (array, tensor): array or tensor of shape (n points, dim)
+        lb (array, tensor): array or tensor of shape (dim, )
+        ub (array, tensor): array or tensor of shape (dim, )
+    """
+    if lb is None:
+        lb = X.min(axis=0)
+        ub = X.max(axis=0)
+    X = (X - lb) / (ub - lb)
+    return X, lb, ub
+
+def from_unit_cube(X, lb, ub):
+    """Un-map a dataset from the unit cube.
+        return X * (ub - lb) + lb
+
+    Args:
+        X (array, tensor): array or tensor of shape (n points, dim)
+        lb (array, tensor): array or tensor of shape (dim, )
+        ub (array, tensor): array or tensor of shape (dim, )
+
+    Returns:
+        (array, tensor): array or tensor of shape (n points, dim)
+    """
+    return X * (ub - lb) + lb
+
 def from_standard(X, mean, std):
     """Un-standardize a dataset without affecting relative scaling.
         return X * std + mean

@@ -21,7 +21,7 @@ class ResidualBlock(nn.Module):
         self.residual = nn.Linear(size_in, size_out)
 
     def forward(self, x: torch.Tensor):
-        return self.act(self.ff(x) + self.residual(x))
+        return self.act(self.ff(x)) + self.residual(x)
 
 # Defining Autoencoder model
 class Autoencoder(nn.Module):
