@@ -39,11 +39,15 @@ class Autoencoder(nn.Module):
         self.encoder_residual = nn.Linear(input_size, encoding_size)
         self.decoder_residual = nn.Linear(encoding_size, input_size)
 
+    def encode(self, x0):
+        return self.encoder(x0) + self.encoder_residual(x0)
+    
+    def decode(self, x1):
+        return self.decoder(x1) + self.decoder_residual(x1)
+
     def forward(self, x0):
-        # encode
-        x1 = self.encoder(x0) + self.encoder_residual(x0)
-        # decode
-        x2 = self.decoder(x1) + self.decoder_residual(x1)
+        x1 = self.encode(x0)
+        x2 = self.decode(x1)
         return x2
    
 def base_layer_sequence(input_size, encoding_size, base=2):
