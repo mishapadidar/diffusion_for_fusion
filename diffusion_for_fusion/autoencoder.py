@@ -49,7 +49,72 @@ class Autoencoder(nn.Module):
         x1 = self.encode(x0)
         x2 = self.decode(x1)
         return x2
-   
+
+# Defining Autoencoder model
+class ConditionalAutoencoder(nn.Module):
+    """Conditional autoencoder. 
+    Take a data point x and a condition vector c, and encode them to product
+    a latent representation z. Then, decode z and c to produce xhat. The net mapping
+    is 
+        xhat = decode(encode(x,c), c)
+    """
+    def __init__(self, input_size, condition_size, encoding_size, cond_emb_size=128, base=2):
+        super().__init__()
+
+        # embedding for conditional
+        self.cond_mlp = nn.Linear(condition_size, cond_emb_size, bias=False)
+
+        # encoder
+        # TODO: revert
+        sizes = base_layer_sequence(input_size + cond_emb_size, encoding_size, base=base)
+        # sizes = [encoding_size, input_size + cond_emb_size]
+
+        layers = [EncoderBlock(sizes[ii], sizes[ii-1]) for ii in range(len(sizes)-1,0,-1)]
+        self.encoder_net = nn.Sequential(*layers)
+        self.encoder_residual = nn.Linear(input_size + cond_emb_size, encoding_size)
+                
+        # decoder
+        # TODO: revert
+        sizes = base_layer_sequence(input_size, encoding_size + cond_emb_size, base=base)
+        # sizes = [encoding_size + cond_emb_size, input_size]
+        
+        layers = [EncoderBlock(sizes[ii], sizes[ii+1]) for ii in range(len(sizes)-1)]
+        self.decoder_net = nn.Sequential(*layers)
+        self.decoder_residual = nn.Linear(encoding_size + cond_emb_size, input_size)
+
+        # Initialize encoder network weights with Xavier initialization
+        for block in self.encoder_net:
+            layer = block.ff
+            if isinstance(layer, nn.Linear):
+                nn.init.xavier_uniform_(layer.weight)
+                if layer.bias is not None:
+                    nn.init.zeros_(layer.bias)
+
+        # Initialize decoder network weights with Xavier initialization
+        for block in self.decoder_net:
+            layer = block.ff
+            if isinstance(layer, nn.Linear):
+                nn.init.xavier_uniform_(layer.weight)
+                if layer.bias is not None:
+                    nn.init.zeros_(layer.bias)
+
+    def encode(self, x, c):
+        xc = torch.cat((x,c), dim=-1)
+        return self.encoder_net(xc) #+ self.encoder_residual(xc)
+    
+    def decode(self, z, c):
+        zc = torch.cat((z,c), dim=-1)
+        return self.decoder_net(zc) + self.decoder_residual(zc)
+
+    def forward(self, x, c):
+        # embed the condition
+        c_emb = self.cond_mlp(c)
+        # encode
+        z = self.encode(x, c_emb)
+        # decode
+        xhat = self.decode(z, c_emb)
+        return xhat
+
 def base_layer_sequence(input_size, encoding_size, base=2):
     """Makes a base-b list of layer sizes.
         [encoding_size, b**k, b**(k+1), ..., b**(k+n), input_size]
@@ -80,3 +145,17 @@ def init_autoencoder_from_config(config, input_dim):
     autoenc = Autoencoder(input_dim, config.encoding_size, base=config.encoding_base)
     return autoenc
 
+def init_conditional_autoencoder_from_config(config, input_dim):
+    """Initialize an autoencoder from a config file.
+
+    Args:
+        config (argparse.Namespace): A config file that has been ingested by argparse,
+            config = parser.parse_args()
+        input_dim (int): dimension of X_train
+
+    Returns:
+        autoenc: initialized autoencoder
+    """
+    autoenc = ConditionalAutoencoder(input_dim, len(config.conditions), config.encoding_size,
+                                     config.cond_emb_size, base=config.encoding_base)
+    return autoenc
