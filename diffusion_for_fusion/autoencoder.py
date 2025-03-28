@@ -65,7 +65,6 @@ class ConditionalAutoencoder(nn.Module):
         self.cond_mlp = nn.Linear(condition_size, cond_emb_size, bias=False)
 
         # encoder
-        # TODO: revert
         sizes = base_layer_sequence(input_size + cond_emb_size, encoding_size, base=base)
         # sizes = [encoding_size, input_size + cond_emb_size]
 
@@ -74,7 +73,6 @@ class ConditionalAutoencoder(nn.Module):
         self.encoder_residual = nn.Linear(input_size + cond_emb_size, encoding_size)
                 
         # decoder
-        # TODO: revert
         sizes = base_layer_sequence(input_size, encoding_size + cond_emb_size, base=base)
         # sizes = [encoding_size + cond_emb_size, input_size]
         
@@ -100,7 +98,7 @@ class ConditionalAutoencoder(nn.Module):
 
     def encode(self, x, c):
         xc = torch.cat((x,c), dim=-1)
-        return self.encoder_net(xc) #+ self.encoder_residual(xc)
+        return self.encoder_net(xc) + self.encoder_residual(xc)
     
     def decode(self, z, c):
         zc = torch.cat((z,c), dim=-1)

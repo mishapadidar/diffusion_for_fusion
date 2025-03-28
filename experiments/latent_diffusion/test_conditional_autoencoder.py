@@ -11,8 +11,10 @@ import matplotlib.pyplot as plt
 
 
 # point to the model directory
-indir = "./output/run_5_uuid_c14c1262-4c0a-459b-b34a-8626d63d2c42"
-
+# indir = "./output/run_5_uuid_c14c1262-4c0a-459b-b34a-8626d63d2c42"
+# indir = "./output/run_50_uuid_6baec103-5abf-43e1-81c2-da4184baea7c"
+# indir = "./output/run_100_uuid_745fc474-009d-4b9e-9bd3-9711631d8120" # pretty good!
+indir = "./output/run_200_uuid_cd089466-40c4-4729-bb09-b272976d942c" # even better!
 
 config_filename = indir + "/config.pickle"
 model_filename = indir + "/model.pth"
@@ -28,8 +30,13 @@ autoencoder.eval()
 # load data
 X_train, Y_train = load_quasr_data(config.conditions)
 
+# global PCA
+pca = PCA(n_components=config.encoding_size)
+X_train_global_pca = pca.fit_transform(X_train)
+X_train_global_pca = pca.inverse_transform(X_train_global_pca)
+
 # find subset the data; fig9 uses (1.1, 12, 4, 1); fig13 uses (1.3, 12, 4, 1)
-mean_iota = 1.3
+mean_iota = 1.1
 aspect_ratio = 12.0
 nfp = 4
 helicity = 1
@@ -44,52 +51,31 @@ input_dim = np.shape(X_train)[1]
 # subset the data
 X_train = X_train[idx_subset]
 Y_train = Y_train[idx_subset]
+X_train_global_pca = X_train_global_pca[idx_subset]
 
 # encode/decode the data
 X_train_torch = torch.tensor(X_train).type(torch.float32)
 Y_train_torch = torch.tensor(Y_train).type(torch.float32)
 
 X_train_decoded = autoencoder(X_train_torch, Y_train_torch).detach().numpy()
-# X_train_encoded = (autoencoder.encode(X_train_torch)).detach().numpy()
-
-# test set
-# std = np.std(X_train, axis=0)
-# X_test = X_train + std * np.random.randn(*np.shape(X_train))
-# X_test_decoded = autoencoder(torch.tensor(X_test).type(torch.float32)).detach().numpy()
-# X_test_encoded = (autoencoder.encode(torch.tensor(X_test).type(torch.float32))).detach().numpy()
 
 # de-standardize data
 X_train = from_standard(X_train, X_mean, X_std)
 X_train_decoded = from_standard(X_train_decoded, X_mean, X_std)
-# X_test_decoded = from_standard(X_test_decoded, X_mean, X_std)
 
 # perform PCA
 pca = PCA(n_components=2)
 X_train_pca = pca.fit_transform(X_train)
 X_train_decoded_pca = pca.transform(X_train_decoded)
-# X_test_decoded_pca = pca.transform(X_test_decoded)
 
 # plot data on the 2D PCA plane
 plt.scatter(X_train_pca[:, 0], X_train_pca[:, 1], alpha=0.5, label='Data')
 plt.scatter(X_train_decoded_pca[:, 0], X_train_decoded_pca[:, 1], alpha=0.5, label='Decoded Data')
-# plt.scatter(X_test_decoded_pca[:, 0], X_test_decoded_pca[:, 1], alpha=0.2, label='Decoded Test Data')
-
 plt.xlabel('Principal Component 1')
 plt.ylabel('Principal Component 2')
 plt.title('2D PCA of Data')
 plt.legend(loc='upper right')
 plt.show()
-
-# # plot encoded data on the 2D PCA plane
-# X_train_encoded_pca = pca.fit_transform(X_train_encoded)
-# X_test_encoded_pca = pca.transform(X_test_encoded)
-# plt.scatter(X_train_encoded_pca[:, 0], X_train_encoded_pca[:, 1], alpha=0.5, label='Encoded Data')
-# plt.scatter(X_test_encoded_pca[:, 0], X_test_encoded_pca[:, 1], alpha=0.2, label='Encoded Test Data')
-# plt.xlabel('Principal Component 1')
-# plt.ylabel('Principal Component 2')
-# plt.title('2D PCA of Encoded Data')
-# plt.legend(loc='upper right')
-# plt.show()
 
 
 """ Evaluate the decoded train data """
@@ -97,9 +83,12 @@ plt.show()
 # sample the data
 n_samples = 100
 
+np.random.seed(0)
+
 idx_samples = np.random.choice(np.arange(len(X_train)), size=n_samples, replace=False)
 X_samples = X_train_decoded[idx_samples]
 X_actuals = X_train[idx_samples]
+# X_actuals = X_train_global_pca[idx_samples]
 Y_targets = Y_train[idx_samples]
 
 # evaluate the samples
