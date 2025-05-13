@@ -35,7 +35,7 @@ X_train = X_train[idx_keep]
 fX_train = fX_train[idx_keep]
 
 
-fig, axes = plt.subplots(1, 3, figsize=(10, 5))
+fig, axes = plt.subplots(1, 3, figsize=(12, 4))
 
 # contour plot of the objective
 x = np.linspace(lb, ub, 100)
@@ -99,7 +99,7 @@ axes[2].plot(sorted_fX_train, cdf_pca, color='tab:blue', lw=2, linestyle='dashed
 
 sorted_fX_train_pca = np.sort(fX_train_pca)
 cdf_pca = np.arange(1, len(sorted_fX_train_pca) + 1) / len(sorted_fX_train_pca)
-axes[2].plot(sorted_fX_train_pca, cdf_pca, color='tab:orange', lw=2, linestyle='dashdot', label='Local PCA')
+axes[2].plot(sorted_fX_train_pca, cdf_pca, color='tab:orange', lw=2, linestyle='dashdot', label='Projected Samples')
 
 axes[2].grid(True, which='both', linestyle='-', linewidth=1, alpha=0.4, color='gray', zorder=0)
 axes[2].set_title("Objective Value CDF")
