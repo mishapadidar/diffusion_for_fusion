@@ -57,12 +57,17 @@ components = pca.components_
 mean = pca.mean_
 t = np.linspace(-8, 2, 100)
 linestyles = ['dashed', 'dotted']
-for ii in range(2):
-    direction = components[ii]
-    axes[0].plot(mean[0] + direction[0] * t, mean[1] + direction[1] * t, color='k', lw=2, alpha=1.0,
-                 ls=linestyles[ii])
-    axes[1].plot(mean[0] + direction[0] * t, mean[1] + direction[1] * t, color='k', lw=2, alpha=1.0,
-                 ls=linestyles[ii])
+# for ii in range(2):
+#     direction = components[ii]
+#     axes[0].plot(mean[0] + direction[0] * t, mean[1] + direction[1] * t, color='k', lw=2, alpha=1.0,
+#                  ls=linestyles[ii])
+#     axes[1].plot(mean[0] + direction[0] * t, mean[1] + direction[1] * t, color='k', lw=2, alpha=1.0,
+#                  ls=linestyles[ii])
+direction = components[0]
+axes[0].plot(mean[0] + direction[0] * t, mean[1] + direction[1] * t, color='k', lw=2, alpha=1.0,
+                ls=linestyles[0])
+axes[1].plot(mean[0] + direction[0] * t, mean[1] + direction[1] * t, color='k', lw=2, alpha=1.0,
+                ls=linestyles[0])
 
 # plot local PCA data
 pca = PCA(n_components=1)
@@ -78,7 +83,7 @@ for ii in range(2):
     axes[ii].set_yticks([])
 
 axes[0].set_title("Samples")
-axes[1].set_title("Samples After Local PCA")
+axes[1].set_title("Projected Samples")
 
 
 # generate more data for the histogram
@@ -95,11 +100,11 @@ fX_train_pca = f(X_train_pca[:, 0], X_train_pca[:, 1])
 # Compute and plot the CDF of the objective value
 sorted_fX_train = np.sort(fX_train)
 cdf_pca = np.arange(1, len(sorted_fX_train) + 1) / len(sorted_fX_train)
-axes[2].plot(sorted_fX_train, cdf_pca, color='tab:blue', lw=2, linestyle='dashed', label='Samples')
+axes[2].plot(sorted_fX_train, cdf_pca, color='tab:blue', lw=3, linestyle='dashed', label='Samples')
 
 sorted_fX_train_pca = np.sort(fX_train_pca)
 cdf_pca = np.arange(1, len(sorted_fX_train_pca) + 1) / len(sorted_fX_train_pca)
-axes[2].plot(sorted_fX_train_pca, cdf_pca, color='tab:orange', lw=2, linestyle='dashdot', label='Projected Samples')
+axes[2].plot(sorted_fX_train_pca, cdf_pca, color='tab:orange', lw=3, linestyle='dashdot', label='Projected Samples')
 
 axes[2].grid(True, which='both', linestyle='-', linewidth=1, alpha=0.4, color='gray', zorder=0)
 axes[2].set_title("Objective Value CDF")
