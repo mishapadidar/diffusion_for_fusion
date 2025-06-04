@@ -28,12 +28,11 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
     """
 
     # build the surface
-    stellsym_factor = 2 if stellsym else 1
     ntheta = max(2*mpol+1, ntheta)
     nphi = max(2*ntor+1, nphi)
     surf = SurfaceXYZTensorFourier(
         mpol=mpol, ntor=ntor, stellsym=stellsym, nfp=nfp,
-        quadpoints_phi=np.linspace(0, 1 / (stellsym_factor * nfp), nphi, endpoint=False),
+        quadpoints_phi=np.linspace(0, 1 / nfp, nphi, endpoint=False),
         quadpoints_theta=np.linspace(0, 1, ntheta, endpoint=False))
     surf.x = x
 
@@ -315,10 +314,9 @@ def test_evaluate_configuration():
     mpol = ntor = 10 # for 661 degrees of freedom
 
     # build the surface
-    factor = 2 if stellsym else 1
     ntheta = max(2*mpol+1, ntheta)
     nphi = max(2*ntor+1, nphi)
-    quadpoints_phi = np.linspace(0, 1 / (factor * nfp), nphi, endpoint=False)
+    quadpoints_phi = np.linspace(0, 1 / (nfp), nphi, endpoint=False)
     quadpoints_theta = np.linspace(0, 1, ntheta, endpoint=False)
     surf = SurfaceXYZTensorFourier(
         mpol=mpol, ntor=ntor, stellsym=stellsym, nfp=nfp, quadpoints_phi=quadpoints_phi, quadpoints_theta=quadpoints_theta)
