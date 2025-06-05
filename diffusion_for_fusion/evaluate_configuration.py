@@ -1,6 +1,6 @@
 import numpy as np
 from simsopt.geo import SurfaceXYZTensorFourier
-from sheet_current import SheetCurrent
+from diffusion_for_fusion.sheet_current import SheetCurrent
 
 def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, M=10, N=10, G=1, ntheta=31, nphi=31, extend_factor=5):
     """Evaluate a surface configuration with the SheetCurrent vacuum solver.
