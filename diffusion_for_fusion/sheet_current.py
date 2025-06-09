@@ -35,7 +35,7 @@ class SheetCurrent(Optimizable):
             print(current.squared_flux(surf))
         
         Parameters:
-            surface (Surface): A Simsopt surface object.
+            surface (Surface): A Simsopt surface object. The quadrature points should discretize one field period.
             G (float): Normalized poloidal current.
             phi (float): The potential function.
             M,N (int): Highest fourier mode number (inclusive) in the poloidal and toroidal directions.
@@ -225,6 +225,7 @@ class SheetCurrent(Optimizable):
         quadpoints_1fp = self.surface.gamma() # (nphi, ntheta, 3)
         nphi, ntheta, _ = quadpoints_1fp.shape
 
+        # TODO: exploit stellarator symmetry
         # rotate to get full torus
         quadpoints = np.zeros((self.nfp * nphi, ntheta, 3))
         K = np.zeros((self.nfp * nphi, ntheta, 3))
@@ -432,15 +433,16 @@ class SheetCurrent(Optimizable):
 
         const = 1 / 4 / np.pi
 
-        # TODO: we can do this with a fourier transform!
-        idx = 0
+        n_cross_grad_theta_dot_k =  np.sum(n_cross_grad_theta * kernel_cross_nhat, axis=-1) # (nphi, ntheta)
+        n_cross_grad_phi_dot_k =  np.sum(n_cross_grad_phi * kernel_cross_nhat, axis=-1) # (nphi, ntheta)
+
+        idx = 0 
         # compute h^S
         for m in range(self.M+1):
             for n in range(self.N+1):
                 fourier = np.cos(2 * np.pi * (m * thetas - self.nfp * n * phis)) # (nphi, ntheta)
-                n_cross_grad_alpha = 2 * np.pi * (m * n_cross_grad_theta  - self.nfp * n * n_cross_grad_phi) # (nphi, ntheta, 3)
-                dot = np.sum(n_cross_grad_alpha * kernel_cross_nhat, axis=-1) # (nphi, ntheta)
-                h_array[idx] = const * np.sum(fourier * dot * dA, axis=(-2, -1)) # (ndofs,)     
+                dot =  2 * np.pi * (m * n_cross_grad_theta_dot_k  - self.nfp * n * n_cross_grad_phi_dot_k)
+                h_array[idx] = const * np.sum(fourier * dot * dA, axis=(-2, -1)) # float
                 idx += 1
 
         # compute h^C
@@ -450,8 +452,7 @@ class SheetCurrent(Optimizable):
                     if m == 0 and n == 0:
                         continue
                     fourier = - np.sin(2 * np.pi * (m * thetas - self.nfp * n * phis)) # (nphi, ntheta)
-                    n_cross_grad_alpha = 2 * np.pi * (m * n_cross_grad_theta  - self.nfp * n * n_cross_grad_phi) # (nphi, ntheta, 3)
-                    dot = np.sum(n_cross_grad_alpha * kernel_cross_nhat, axis=-1) # (nphi, ntheta)
+                    dot =  2 * np.pi * (m * n_cross_grad_theta_dot_k  - self.nfp * n * n_cross_grad_phi_dot_k)
                     h_array[idx] = const * np.sum(fourier * dot * dA, axis=(-2, -1)) # (ndofs,)     
                     idx += 1
 
