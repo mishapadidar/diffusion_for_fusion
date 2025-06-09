@@ -241,6 +241,10 @@ class MLP(nn.Module):
 
 
 class GaussianDiffusion(nn.Module): #rewrite it into a nn module class
+    """
+    This class implements the Gaussian diffusion process for denoising. The class cannot
+    condition on any inputs like the ConditionalGaussianDiffusion class.
+    """
     def __init__(self,
                  model, #take in the backbone denoiser
                  num_timesteps=1000,

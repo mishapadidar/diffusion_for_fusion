@@ -7,6 +7,9 @@ from diffusion_for_fusion.ddpm_fusion import Block, PositionalEmbedding
 
 
 class ConditionalMLP(nn.Module):
+    """
+    This class implements a conditional MLP that can be used as a backbone for the diffusion model.
+    """
     def __init__(self, input_dim, input_emb_size: int = 64,
                  time_emb_size: int = 128, time_emb_type: str = "sinusoidal",
                  cond_input_dim: int = 1, cond_emb_size: int = 128, input_head = False,
@@ -60,6 +63,10 @@ class ConditionalMLP(nn.Module):
 
 
 class ConditionalGaussianDiffusion(nn.Module): #rewrite it into a nn module class
+    """
+    This class implements a conditional Gaussian diffusion process.
+    It allows for training a denoising model that can generate samples conditioned on some input.
+    """
     def __init__(self,
                  model, #take in the backbone denoiser
                  num_timesteps=1000,
