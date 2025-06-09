@@ -2,7 +2,7 @@ import numpy as np
 from simsopt.geo import SurfaceXYZTensorFourier
 from diffusion_for_fusion.sheet_current import SheetCurrent
 
-def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, M=10, N=10, G=1, ntheta=31, nphi=31, extend_factor=5):
+def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, M=10, N=10, G=1, ntheta=21, nphi=21, extend_factor=0.2):
     """Evaluate a surface configuration with the SheetCurrent vacuum solver.
 
     Args:
@@ -19,11 +19,12 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
             The actual ntheta will be max(2*mpol +1, ntheta). Defaults to 31.
         nphi (int, optional): minimum number of surface (not winding surface) quadrature points in phi direction.
             The actual nphi will be max(2*mpol +1, nphi). Defaults to 31.
-        extend_factor (float, optional): factor by which to extend the winding surface in the normal direction. Defaults to 5.
+        extend_factor (float, optional): factor by which to extend the winding surface in the normal direction. The total extension
+            distance extended is a multiple of the major radius. Defaults to 0.2.
 
     Returns:
         tuple: (metrics, sheet_current)
-        metrics (np array):  (quasisymmetry error, iota, aspect ratio, boozer residual mean squared error)
+        metrics (dict): dictionary of metrics
         sheet_current (SheetCurrent): SheetCurrent object with the fitted current.
     """
 
@@ -36,6 +37,11 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
         quadpoints_theta=np.linspace(0, 1, ntheta, endpoint=False))
     surf.x = x
 
+    # surf = SurfaceXYZTensorFourier(
+    #     mpol=10, ntor=10, stellsym=True, nfp=nfp,
+    #     quadpoints_phi=np.linspace(0, 1 / nfp, 31, endpoint=False),
+    #     quadpoints_theta=np.linspace(0, 1, 31, endpoint=False))
+
     assert 2*M+1 <= ntheta and N <= 2*nphi + 1, "M and N must be less than or equal to ntheta and nphi respectively."
 
     # build winding surface
@@ -45,7 +51,8 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
         quadpoints_theta=np.linspace(0, 1, ntheta, endpoint=False))
     surf_winding.x = np.copy(x)  
     orientation = compute_orientation(surf_winding)
-    dist_extend = surf_winding.minor_radius()*(orientation * extend_factor)
+    # dist_extend = surf_winding.minor_radius()*(orientation * extend_factor)
+    dist_extend = surf_winding.major_radius() * (orientation * extend_factor)
     surf_winding.extend_via_normal(dist_extend)
 
     # fit the sheet current
@@ -63,7 +70,8 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
     # compute boozer residual
     _, residual_mse = boozer_residual(surf, current, iota)
     
-    metrics = np.array([qs_error, iota, surf.aspect_ratio(), residual_mse])
+    metrics = {'qs_error': qs_error, 'iota': iota, 'aspect_ratio': surf.aspect_ratio(), 'boozer_residual_mse': residual_mse}
+    # metrics = np.array([qs_error, iota, surf.aspect_ratio(), residual_mse])
 
     return metrics, current
 
@@ -291,10 +299,10 @@ def test_evaluate_configuration():
 
     # parameters
     M = N = 10
-    extend_factor = 5
+    extend_factor = 0.1
     nphi = ntheta = 31
     # which data point
-    idx_data = 0
+    idx_data = 35
 
     # load the data set
     Y_init = pd.read_pickle('../data/QUASR.pkl') # y-values
@@ -325,6 +333,19 @@ def test_evaluate_configuration():
     # evaluate the configuration
     metrics, current = evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=Y.helicity[idx_data], M=M, N=N, G=G, ntheta=ntheta, nphi=nphi, extend_factor=extend_factor)
     print('metrics', metrics)
+
+    # Plot the surface of xyz
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    xyz = surf.gamma()
+    ax.plot_surface(xyz[:, :, 0], xyz[:, :, 1], xyz[:, :, 2], alpha=0.5, label='surf')
+    xyz = current.surface.gamma()
+    ax.plot_surface(xyz[:, :, 0], xyz[:, :, 1], xyz[:, :, 2], alpha=0.5, label='winding surface')
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+    plt.legend()
+    plt.show()
 
     # contour plot
     xyz = surf.gamma()
