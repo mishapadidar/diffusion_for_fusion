@@ -10,7 +10,7 @@ import pickle
 from uuid import uuid4
 from diffusion_for_fusion.autoencoder import Autoencoder
 from diffusion_for_fusion.ddpm_fusion import set_seed, to_standard
-from experiments.basic_conditional.load_quasr_data import load_quasr_data
+from experiments.conditional_diffusion.load_quasr_data import load_quasr_data
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--train_batch_size", type=int, default=128)

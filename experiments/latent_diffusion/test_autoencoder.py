@@ -2,7 +2,7 @@ from diffusion_for_fusion.autoencoder import init_autoencoder_from_config
 from diffusion_for_fusion.evaluate_configuration import evaluate_configuration
 import numpy as np
 from diffusion_for_fusion.ddpm_fusion import to_standard, from_standard
-from experiments.basic_conditional.load_quasr_data import load_quasr_data
+from experiments.conditional_diffusion.load_quasr_data import load_quasr_data
 import pickle
 import torch
 from sklearn.decomposition import PCA
