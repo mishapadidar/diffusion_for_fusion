@@ -19,8 +19,8 @@ def load_quasr_data(return_pca=False, fig="fig11"):
     """
 
     # to load the data set
-    Y_init = pd.read_pickle('QUASR.pkl') # y-values
-    X_init = np.load('dofs.npy') # x-values
+    Y_init = pd.read_pickle('../../data/QUASR.pkl') # y-values
+    X_init = np.load('../../data/dofs.npy') # x-values
 
     Y_init = Y_init.reset_index(drop=True)
 
