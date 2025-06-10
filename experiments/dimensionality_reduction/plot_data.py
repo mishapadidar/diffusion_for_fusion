@@ -52,6 +52,8 @@ df_std = df_std.rename(columns={'n_pca': 'n_pca',
 # concatenate means and stds
 df_mean = pd.merge(df_mean, df_std, on='n_pca', how='outer')
 
+print(df_mean)
+
 # compute relative error
 cols = ['mean_qs_error', 'mean_iota', 'mean_aspect_ratio']
 df_target = df_mean.loc[df_mean.n_pca == 661].squeeze() # convert to series
@@ -65,30 +67,17 @@ df_mean.loc[:, new_cols] = 100 * np.abs(((df_mean[cols] - df_target[cols]) / df_
 
 
 # plot means
-fig, ax = plt.subplots(1, 2, figsize=(10, 4))
-ax[0].plot(df_mean.n_pca, df_mean.mean_qs_error_rel_error, label='QS Error', lw=2, ls='dashdot', marker='o', color=colors[0])
-ax[0].plot(df_mean.n_pca, df_mean.mean_iota_rel_error, label='Rotational Transform', lw=2, ls='dotted', marker='s', color=colors[1])
-ax[0].plot(df_mean.n_pca, df_mean.mean_aspect_ratio_rel_error, label='Aspect Ratio', lw=2, ls='--', marker='*', color=colors[2])
-ax[0].axvline(50, color='k', ls='--', lw=2)
-ax[0].set_xlabel('Number of PCA components')
-ax[0].set_ylabel('Relative Error [%]')
-ax[0].set_xscale('log')
-ax[0].legend(loc='upper right', fontsize=9)
-# ax[0].set_title('Relative Error in Mean Values')
-ax[0].grid(True, zorder=0, color='lightgray')
+fig, ax = plt.subplots(1, 3, figsize=(12, 4))
+ax[1].plot(df_mean.n_pca, df_mean.mean_qs_error_rel_error, label='QS Error', lw=2, ls='dashdot', marker='o', color=colors[0])
+ax[1].plot(df_mean.n_pca, df_mean.mean_iota_rel_error, label='Rotational Transform', lw=2, ls='dotted', marker='s', color=colors[1])
+ax[1].plot(df_mean.n_pca, df_mean.mean_aspect_ratio_rel_error, label='Aspect Ratio', lw=2, ls='--', marker='*', color=colors[2])
+ax[1].axvline(50, color='k', ls='--', lw=2)
+ax[1].set_xlabel('Number of PCA components')
+ax[1].set_ylabel('Relative Error [%]')
+ax[1].set_xscale('log')
+ax[1].legend(loc='upper right', fontsize=9)
+ax[1].grid(True, zorder=0, color='lightgray')
 
-
-# # plot standard deviations
-# ax[1].plot(df_mean.n_pca, df_mean.std_qs_error_rel_error, label='QS Error', lw=2, marker='o')
-# ax[1].plot(df_mean.n_pca, df_mean.std_iota_rel_error, label='Rotational Transform', lw=2, ls='-', marker='s')
-# ax[1].plot(df_mean.n_pca, df_mean.std_aspect_ratio_rel_error, label='Aspect Ratio', lw=2, ls='-', marker='*')
-# ax[1].axvline(50, color='k', ls='--', lw=2)
-# ax[1].set_xlabel('Number of PCA components')
-# ax[1].set_ylabel('Relative Error [%]')
-# ax[1].set_xscale('log')
-# ax[1].legend(loc='upper right', fontsize=10)
-# ax[1].set_title('Relative Error in Standard Deviations')
-# ax[1].grid(True, zorder=0, color='lightgray')
 
 # kde plot
 sizes = [661, 50]
@@ -126,6 +115,22 @@ from matplotlib.patches import Patch
 legend_elements = [Patch(facecolor=colors[0], label='$n_{pca}=%d$'%sizes[0]),
                    Patch(facecolor=colors[1], label='$n_{pca}=%d$'%sizes[1])]
 ax[-1].legend(handles=legend_elements, loc='upper left', fontsize=9)
+
+
+# plot the PCA variance explained
+X = np.load('../../data/dofs.npy') # x-values
+C = np.cov(X.T)
+eig = np.sort(np.linalg.eigvals(C))[::-1]
+eig = eig / np.sum(eig) * 100 
+var = np.cumsum(eig) 
+ax[0].plot(1+np.arange(len(eig)), var, lw=2, color='steelblue')
+ax[0].axvline(50, color='k', ls='--', lw=2)
+ax[0].set_xlabel('Number of Principal Components')
+ax[0].set_ylabel("% of Variance Explained")
+ax[0].set_xscale('log')
+ax[0].grid(zorder=0, color='lightgray')
+ax[0].set_xticks([1, 10, 100, 1000])
+ax[0].set_yticks([60, 70, 80, 90, 100])
 
 
 plt.tight_layout()
