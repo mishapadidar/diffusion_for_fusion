@@ -36,44 +36,7 @@
     python -m pip install mpi4py
     python -m pip install simsopt"[MPI]"
     ```
-6. Install some stuff for working with VMEC,
-    ```
-    brew install gcc (this comes with gfortran)
-    brew install scalapack
-    brew install netcdf-fortran
-    brew install openblas
-    ```
-    Also install f90wrap dependency meson-python:
-    ```
-    python -m pip install meson-python
-    ```
-7. clone VMEC2000
-    ```
-    git clone git@github.com:hiddenSymmetries/VMEC2000.git
-    cd VMEC2000
-    ```
-8. Modify the `cmake_config_file.json` to be,
-    ```
-    {
-        "cmake_args": [
-            "-DCMAKE_C_COMPILER=clang",
-            "-DCMAKE_CXX_COMPILER=clang",
-            "-DCMAKE_Fortran_COMPILER=mpif90",
-            "-DNETCDF_INC_PATH=/opt/homebrew/opt/netcdf-fortran/include",
-            "-DNETCDF_LIB_PATH=/opt/homebrew/opt/netcdf-fortran/lib",
-            "-DNETCDF_I=/opt/local/include/netcdf.inc"]
-    }
-    ```
-    Then install VMEC
-    ```
-    python -m pip install . -v --no-cache-dir
-    ```
-    If the install fails, delete the `_skbuild` directory. Install whatever you need or adjust the `cmake_config_file.json` and try again. Sometimes, the pip install fails for frustrating reasons, in which case, try to build from source
-    ```
-    python setup.py build_ext
-    python setup.py install
-    ```
-9. Export the python path so that import statements work properly. The following will overwrite your PYTHONPATH.
+6. Export the python path so that import statements work properly. The following will overwrite your PYTHONPATH.
     ```
     export PYTHONPATH="/Users/mpadidar/code/ml/diffusion_for_fusion"
     ```
