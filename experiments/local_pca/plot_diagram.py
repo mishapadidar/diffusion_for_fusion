@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
-from experiments.basic_conditional.load_quasr_data import load_quasr_data
+from experiments.conditional_diffusion.load_quasr_data import load_quasr_data
 from scipy.stats import gaussian_kde
 
 
