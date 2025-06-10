@@ -4,23 +4,24 @@ from diffusion_for_fusion.evaluate_configuration import evaluate_configuration
 from sklearn.decomposition import PCA
 import os
 
+n_samples = 200
+
 # load the data
 Y = pd.read_pickle('../../data/QUASR.pkl') # y-values
 X = np.load('../../data/dofs.npy') # x-values
 Y = Y.reset_index(drop=True)
 
-# TODO: use adaptive M,N,ntheta,nphi depending on nfp!
 # vacuum solver params
 M = N = 10
 ntheta = nphi = 31
 default_extend_factor = 0.20
 
 # only evaluate a subset of the data
-n_samples = 50
 idx_samples = np.random.choice(len(X), n_samples, replace=False)
 Y = Y.iloc[idx_samples].reset_index(drop=True)
 
-n_pca_components = [np.shape(X)[1], 330, 150, 75, 36, 18, 9, 4, 2]
+# n_pca_components = [np.shape(X)[1], 330, 150, 75, 36, 18, 9, 4, 2]
+n_pca_components = [np.shape(X)[1], 400, 200, 100, 50, 25, 12, 6, 3]
 
 for jj, n_pca in enumerate(n_pca_components):
 
