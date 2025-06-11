@@ -13,7 +13,7 @@ Plot the loss of information caused by dimensionality reduction using PCA.
 
 plt.rc('font', family='serif')
 # plt.rc('text.latex', preamble=r'\\usepackage{amsmath,bm}')
-plt.rcParams.update({'font.size': 11})
+plt.rcParams.update({'font.size': 12})
 colors = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", 
           "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 colors = ['salmon', 'goldenrod', 'mediumseagreen']
@@ -35,6 +35,8 @@ df_plt = df_plt.loc[:, ['n_pca', 'qs_error', 'aspect_ratio', 'ID']]
 
 # convert qs_error to percentage
 df_plt['qs_error'] = df_plt['qs_error'] * 100  # convert to percentage
+# convert qs_error to percentage
+df_plt['log_qs_error'] = np.log10(df_plt['qs_error'])
 
 # drop n_pca < 5
 df_plt = df_plt.loc[df_plt.n_pca >= 6].reset_index(drop=True)
@@ -46,9 +48,9 @@ df_actual = df_plt.loc[df_plt.n_pca == 661]
 df_plt = df_plt.merge(df_actual, on='ID', suffixes=('', '_actual'), how='left')
 
 # compute relative error
-cols = ['qs_error', 'aspect_ratio']
+cols = ['log_qs_error', 'aspect_ratio']
 mins = df_plt[[f'{col}_actual' for col in cols]].values
-df_plt.loc[:, ['qs_error_rel_error', 'aspect_ratio_rel_error']] = 100 * np.abs((df_plt[cols] - mins) / mins).values
+df_plt.loc[:, ['log_qs_error_rel_error', 'aspect_ratio_rel_error']] = 100 * np.abs((df_plt[cols] - mins) / mins).values
 
 
 fig, ax = plt.subplots(1, 3, figsize=(12, 4))
@@ -84,12 +86,12 @@ ax[1].fill_between(x, 0, 1, where=y > 20,
                 color='lightgrey', alpha=0.5, transform=ax[1].get_xaxis_transform())
 
 
-df_stats = df_plt.groupby('n_pca')['qs_error_rel_error'].agg(['median', 'max']).reset_index()
-df_stats.rename(columns={'median': 'median_qs_error_rel_error'}, inplace=True)
-ax[1].plot(df_stats.n_pca, df_stats.median_qs_error_rel_error, label='QS-Error', lw=2, ls='--', marker='*', color=colors[1])
+df_stats = df_plt.groupby('n_pca')['log_qs_error_rel_error'].agg(['median', 'max']).reset_index()
+df_stats.rename(columns={'median': 'median_log_qs_error_rel_error'}, inplace=True)
+ax[1].plot(df_stats.n_pca, df_stats.median_log_qs_error_rel_error, label='$\log$(QS-Error)', lw=2, ls='--', marker='*', color=colors[1])
 
 ax[1].axvline(50, color='k', ls='--', lw=2)
-ax[1].set_xlabel('Number of PCA components')
+ax[1].set_xlabel('Number of Principal Components')
 ax[1].set_ylabel('Median Percentage Error')
 ax[1].set_xscale('log')
 ax[1].legend(loc='upper right', fontsize=9)
