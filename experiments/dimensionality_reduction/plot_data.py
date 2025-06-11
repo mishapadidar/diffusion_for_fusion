@@ -69,7 +69,7 @@ df_mean.loc[:, new_cols] = 100 * np.abs(((df_mean[cols] - df_target[cols]) / df_
 # plot means
 fig, ax = plt.subplots(1, 3, figsize=(12, 4))
 ax[1].plot(df_mean.n_pca, df_mean.mean_qs_error_rel_error, label='QS Error', lw=2, ls='dashdot', marker='o', color=colors[0])
-ax[1].plot(df_mean.n_pca, df_mean.mean_iota_rel_error, label='Rotational Transform', lw=2, ls='dotted', marker='s', color=colors[1])
+# ax[1].plot(df_mean.n_pca, df_mean.mean_iota_rel_error, label='Rotational Transform', lw=2, ls='dotted', marker='s', color=colors[1])
 ax[1].plot(df_mean.n_pca, df_mean.mean_aspect_ratio_rel_error, label='Aspect Ratio', lw=2, ls='--', marker='*', color=colors[2])
 ax[1].axvline(50, color='k', ls='--', lw=2)
 ax[1].set_xlabel('Number of PCA components')
@@ -97,8 +97,8 @@ for ii, n_pca in enumerate(sizes):
     positions = np.vstack([x_grid.ravel(), y_grid.ravel()])
     density = kde(positions).reshape(x_grid.shape)
 
-    # ax[-1].contour(x_grid, y_grid, density, cmap=cmaps[ii], alpha=1.0, linewidths=2, linestyles=linestyles[ii])
-    ax[-1].contour(x_grid, y_grid, density, colors=colors[ii], alpha=alphas[ii], linewidths=3, linestyles=linestyles[ii])
+    # ax[-1].contour(x_grid, y_grid, density, cmap=cmaps[ii],  levels=np.linspace(np.min(density), np.max(density),20, endpoint=True), alpha=1.0, linewidths=2, linestyles=linestyles[ii])
+    ax[-1].contour(x_grid, y_grid, density, levels=20, colors=colors[ii], alpha=alphas[ii], linewidths=3, linestyles=linestyles[ii])
 
 
 ax[-1].set_ylabel('QS Error [%]')

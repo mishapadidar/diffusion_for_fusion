@@ -1,29 +1,27 @@
 import numpy as np
 import pandas as pd
-from diffusion_for_fusion.evaluate_configuration import evaluate_configuration
+# from diffusion_for_fusion.evaluate_configuration import evaluate_configuration
+from diffusion_for_fusion.evaluate_configuration_boozer_surface import evaluate_configuration
 from sklearn.decomposition import PCA
 import os
+import time
 
-n_samples = 200
+n_samples = 10000
+
 
 # load the data
 Y = pd.read_pickle('../../data/QUASR.pkl') # y-values
 X = np.load('../../data/dofs.npy') # x-values
-Y = Y.reset_index(drop=True)
-
-# vacuum solver params
-M = N = 10
-ntheta = nphi = 31
-default_extend_factor = 0.20
+Y = Y.reset_index(drop=True) # this is critical for indexing.
 
 # only evaluate a subset of the data
 idx_samples = np.random.choice(len(X), n_samples, replace=False)
 Y = Y.iloc[idx_samples].reset_index(drop=True)
 
-# n_pca_components = [np.shape(X)[1], 330, 150, 75, 36, 18, 9, 4, 2]
-n_pca_components = [np.shape(X)[1], 400, 200, 100, 50, 25, 12, 6, 3]
+n_pca_components = [np.shape(X)[1], 400, 300, 200, 150, 100, 50, 40, 30, 25, 17, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2]
 
 for jj, n_pca in enumerate(n_pca_components):
+    print(f"Evaluating PCA with {n_pca} components...")
 
     # do dimensionality reduction
     if n_pca == np.shape(X)[1]:
@@ -42,11 +40,6 @@ for jj, n_pca in enumerate(n_pca_components):
         'iota': np.zeros(n_samples),
         'aspect_ratio': np.zeros(n_samples),
         'boozer_residual_mse': np.zeros(n_samples),
-        'M': np.zeros(n_samples),
-        'N': np.zeros(n_samples),
-        'ntheta': np.zeros(n_samples),
-        'nphi': np.zeros(n_samples),
-        'extend_factor': np.zeros(n_samples),
         'G': np.zeros(n_samples),
         'helicity': np.zeros(n_samples),
         'nfp': np.zeros(n_samples),
@@ -54,42 +47,35 @@ for jj, n_pca in enumerate(n_pca_components):
         'n_pca': n_pca*np.ones(n_samples, dtype=int)
     }
 
+    t0 = time.time()
     for ii, xx in enumerate(X_pca):
+        if ii % 1000 == 0:
+            t1 = time.time()
+            print(f"Evaluating configuration {ii}/{n_samples}; time elapsed: {(t1 - t0)/(ii+1):.2f} s per configuration")
         nfp = Y.nfp[ii]
-        I_P = sum(np.abs(Y.currents[0])) * nfp * 2 # total current through hole
+        I_P = sum(np.abs(Y.currents[ii])) * nfp * 2 # total current through hole
         G = (4 * np.pi * 1e-7) * I_P
         helicity = Y.helicity[ii]
+        iota = Y.iota_profile[ii][-1] # rotational transform
         
-        extend_factor = default_extend_factor
-        metrics, _ = evaluate_configuration(xx, nfp, stellsym=True, mpol=10, ntor=10, helicity=helicity, M=M, N=N, G=G, ntheta=ntheta, nphi=nphi, extend_factor=extend_factor)
-
-        # reevaluate if results are bad: probably due to self-intersecting winding surface
-        if np.abs(metrics['iota'] - Y.iota_profile[ii][-1]) > 0.05 :
-            extend_factor = default_extend_factor / 2
-            metrics, _ = evaluate_configuration(xx, nfp, stellsym=True, mpol=10, ntor=10, helicity=helicity, M=M, N=N, G=G, ntheta=ntheta, nphi=nphi, extend_factor=extend_factor)
+        metrics = evaluate_configuration(xx, iota, nfp, stellsym=True, mpol=10, ntor=10, helicity=helicity, G=G)
 
         qs_err_actual = np.sqrt(Y.qs_error[ii])
-        iota_actual = Y.iota_profile[ii][-1]
         aspect_ratio_actual = Y.aspect_ratio[ii]
-        print("")
-        print(f"Configuration {ii}) nfp={nfp}, helicity={helicity}:")
-        print(f"Actual values: qs_err={qs_err_actual}, iota={iota_actual}, aspect_ratio={aspect_ratio_actual}")
-        print(f"Evaluated values: qs_err={metrics['qs_error']}, iota={metrics['iota']}, aspect_ratio={metrics['aspect_ratio']}")
 
-        # collect the data
+        # print("")
+        # print(f"Configuration {ii}) Device {data['ID'][ii]}, nfp={nfp}, helicity={helicity}:")
+        # print(f"QUASR metrics: qs_err={qs_err_actual}, iota={iota}, aspect_ratio={aspect_ratio_actual}")
+        # print(f"Evaluated metrics: qs_err={metrics['qs_error']}, aspect_ratio={metrics['aspect_ratio']}, boozer_residual_mse={metrics['boozer_residual_mse']}")
+
+        # collect the data  
         data['qs_error'][ii] = metrics['qs_error']
-        data['iota'][ii] = metrics['iota']
+        data['iota'][ii] = iota
         data['aspect_ratio'][ii] = metrics['aspect_ratio']
         data['boozer_residual_mse'][ii] = metrics['boozer_residual_mse']
-        data['M'][ii] = M
-        data['N'][ii] = N
-        data['ntheta'][ii] = ntheta
-        data['nphi'][ii] = nphi
-        data['extend_factor'][ii] = extend_factor
         data['G'][ii] = G
         data['helicity'][ii] = helicity
         data['nfp'][ii] = nfp
-        print(f"Device {data['ID'][ii]}: qs_error={metrics['qs_error']}, iota={metrics['iota']}, aspect_ratio={metrics['aspect_ratio']}")
 
     # save data
     outdir = "./output/"
