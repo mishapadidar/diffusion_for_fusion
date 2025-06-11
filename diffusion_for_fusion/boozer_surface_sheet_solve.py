@@ -1,6 +1,6 @@
 import numpy as np
 
-def boozer_surface_sheet_solve(surface, G, iota):
+class BoozerSurfaceSheetSolve:
     """
     Find the (vacuum) magnetic field on a Boozer surface.
 
@@ -22,12 +22,52 @@ def boozer_surface_sheet_solve(surface, G, iota):
     Returns:
         B (array): The magnetic field on the surface, shape (nphi, ntheta, 3).
     """
-    dx_by_dphi = surface.gammadash1() # (nphi, ntheta, 3)
-    dx_by_dtheta = surface.gammadash2()
-    tangent = dx_by_dphi + iota * dx_by_dtheta # (nphi, ntheta, 3)
-    norm_tangent = np.sum(tangent**2, axis=-1, keepdims=True)  # (nphi, ntheta, 1)
-    B = G * tangent / norm_tangent**2
-    return B
+    def __init__(self, surface, G, iota):
+        self.surface = surface
+        self.G = G
+        self.iota = iota
+        self.need_to_run_code = True
+
+    def B(self):
+        dx_by_dphi = self.surface.gammadash1() # (nphi, ntheta, 3)
+        dx_by_dtheta = self.surface.gammadash2()
+        tangent = dx_by_dphi + self.iota * dx_by_dtheta # (nphi, ntheta, 3)
+        norm_tangent = np.sum(tangent**2, axis=-1, keepdims=True)  # (nphi, ntheta, 1)
+        B = self.G * tangent / norm_tangent**2
+        return B
+    
+    def boozer_residual(self):
+        """
+        Compute the residual of the Boozer equation on the surface,
+            r = G * B - |B|^2 * (dx/dphi + iota * dx/dtheta).
+
+        Returns:
+            residual (array): The residual of the Boozer equation, shape (nphi, ntheta, 3).
+        """
+        dx_by_dphi = self.surface.gammadash1() # (nphi, ntheta, 3)
+        dx_by_dtheta = self.surface.gammadash2()
+        tangent = dx_by_dphi + self.iota * dx_by_dtheta # (nphi, ntheta, 3)
+        B = self.B()
+        modB_squared = np.sum(B**2, axis=-1, keepdims=True) 
+        residual = self.G * B - modB_squared * tangent
+        return residual
+    
+    def boozer_residual_mse(self):
+        """ Compute the mean squared error of the Boozer residual over the surface.
+
+        Returns:
+            total (float): The mean squared error of the Boozer residual over the surface.
+        """
+        dtheta = np.diff(self.surface.quadpoints_theta)[0]
+        dphi = np.diff(self.surface.quadpoints_phi)[0]
+        normal = self.surface.normal().reshape(-1, 3) # (n, 3)
+        dA = np.linalg.norm(normal, axis=-1) * (dtheta * dphi) # (n)
+
+        residual = self.boozer_residual().reshape((-1, 3)) # (n, 3)
+        residual = np.linalg.norm(residual, axis=-1)  # (n,)
+        total = np.sqrt(np.mean(np.sum(residual**2, axis=-1) * dA)) # (scalar)
+        return total
+
     
 def test_boozer_surface_sheet_solve():
     """Test the boozer_surface_sheet_solve function by loading a data point from QUASR."""
@@ -76,7 +116,7 @@ def test_boozer_surface_sheet_solve():
     # compare to winding surface solve
     xyz = surf.gamma()
     B_ws = current.B(xyz.reshape((-1, 3))).reshape(xyz.shape) # (nphi, ntheta, 3)
-    B_boozer = boozer_surface_sheet_solve(surf, G, iota)
+    B_boozer = BoozerSurfaceSheetSolve(surf, G, iota).B() # (nphi, ntheta, 3)
     err = B_ws - B_boozer
     err_from_B_ws = np.max(np.abs(err))
     print('error from winding surface field', err_from_B_ws)
