@@ -132,8 +132,8 @@ ax[-1].grid(zorder=0, color='lightgray')
 from matplotlib.patches import Patch
 # legend_elements = [Patch(facecolor=plt.get_cmap(cmaps[0])(0.4), label='$n_{pca}=%d$'%sizes[0]),
 #                    Patch(facecolor=plt.get_cmap(cmaps[1])(0.4), label='$n_{pca}=%d$'%sizes[1])]
-legend_elements = [Patch(facecolor=colors[0], label='$n_{pca}=%d$'%sizes[0]),
-                   Patch(facecolor=colors[1], label='$n_{pca}=%d$'%sizes[1])]
+legend_elements = [Patch(facecolor=colors[0], label='$n_r=n_{\mathbf{x}}$'),
+                   Patch(facecolor=colors[1], label='$n_r=%d$'%sizes[1])]
 ax[-1].legend(handles=legend_elements, loc='upper left', fontsize=9)
 
 
