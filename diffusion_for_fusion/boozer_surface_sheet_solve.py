@@ -32,8 +32,8 @@ class BoozerSurfaceSheetSolve:
         dx_by_dphi = self.surface.gammadash1() # (nphi, ntheta, 3)
         dx_by_dtheta = self.surface.gammadash2()
         tangent = dx_by_dphi + self.iota * dx_by_dtheta # (nphi, ntheta, 3)
-        norm_tangent = np.sum(tangent**2, axis=-1, keepdims=True)  # (nphi, ntheta, 1)
-        B = self.G * tangent / norm_tangent**2
+        norm_tangent_squared = np.sum(tangent**2, axis=-1, keepdims=True)  # (nphi, ntheta, 1)
+        B = self.G * tangent / norm_tangent_squared
         return B
     
     def boozer_residual(self):
@@ -74,7 +74,7 @@ def test_boozer_surface_sheet_solve():
     import pandas as pd
     import matplotlib.pyplot as plt
     from simsopt.geo import SurfaceXYZTensorFourier
-    from diffusion_for_fusion.evaluate_configuration import evaluate_configuration
+    from diffusion_for_fusion.evaluate_configuration_sheet_curent import evaluate_configuration
 
     # parameters
     M = N = 10
@@ -95,7 +95,7 @@ def test_boozer_surface_sheet_solve():
     # pick a data point
     x = X[idx_data]
     nfp = Y.nfp[idx_data]
-    I_P = sum(np.abs(Y.currents[0])) * nfp * 2 # total current through hole
+    I_P = sum(np.abs(Y.currents[idx_data])) * nfp * 2 # total current through hole
     G = (4 * np.pi * 1e-7) * I_P
     stellsym = True
     mpol = ntor = 10 # for 661 degrees of freedom
