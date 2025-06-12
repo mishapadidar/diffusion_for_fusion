@@ -111,7 +111,7 @@ for ii, n_pca in enumerate(sizes):
     kde = gaussian_kde(X.T)
     x_min, x_max = 1.0, X[:, 0].max()
     y_min, y_max = 0.0, X[:, 1].max()
-    x_grid, y_grid = np.meshgrid(np.linspace(x_min, x_max, 100), np.linspace(y_min, y_max, 100), indexing='ij')
+    x_grid, y_grid = np.meshgrid(np.linspace(x_min, x_max, 400), np.linspace(y_min, y_max, 400), indexing='ij')
     positions = np.vstack([x_grid.ravel(), y_grid.ravel()])
     density = kde(positions).reshape(x_grid.shape)
 
