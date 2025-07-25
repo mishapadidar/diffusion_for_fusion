@@ -77,7 +77,10 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
 
 
 def compute_iota(surf, current):
-    """Compute the iota value from the surface and current by minimizing the boozer residual,
+    """Compute the iota value from the surface and current by minimizing the boozer residual.
+    
+    NOTE: The iota value produced by this function is only accurate if the boozer residual is 
+    zero, i.e. the angles are indeed Boozer angles.
 
         r(theta, phi; iota) = G * B - mod(B)^2 * (dSigma/dvarphi + iota * dSigma/theta)
     as a least squares problem
