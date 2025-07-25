@@ -31,12 +31,12 @@ for ii, ff in enumerate(filelist[1:]):
     df_plt = pd.concat([df_plt, df], ignore_index=True)
 
 # drop data
-df_plt = df_plt.loc[:, ['n_pca', 'qs_error', 'aspect_ratio', 'ID']]
+df_plt = df_plt.loc[:, ['n_pca', 'sqrt_qs_error', 'aspect_ratio', 'ID']]
 
 # convert qs_error to percentage
-df_plt['qs_error'] = df_plt['qs_error'] * 100  # convert to percentage
+df_plt['sqrt_qs_error'] = df_plt['sqrt_qs_error'] * 100  # convert to percentage
 # convert qs_error to percentage
-df_plt['log_qs_error'] = np.log10(df_plt['qs_error'])
+df_plt['log_qs_error'] = np.log10(df_plt['sqrt_qs_error'])
 
 # drop n_pca < 5
 df_plt = df_plt.loc[df_plt.n_pca >= 6].reset_index(drop=True)
@@ -107,7 +107,7 @@ linestyles = ['solid', 'solid']
 alphas = [1.0, 0.8]
 for ii, n_pca in enumerate(sizes):
     idx= (df_plt.n_pca == n_pca)
-    X = df_plt.loc[idx, ['aspect_ratio', 'qs_error']].values
+    X = df_plt.loc[idx, ['aspect_ratio', 'sqrt_qs_error']].values
     kde = gaussian_kde(X.T)
     x_min, x_max = 1.0, X[:, 0].max()
     y_min, y_max = 0.0, X[:, 1].max()

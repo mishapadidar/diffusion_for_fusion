@@ -1,12 +1,13 @@
 import numpy as np
 import pandas as pd
 # from diffusion_for_fusion.evaluate_configuration import evaluate_configuration
-from diffusion_for_fusion.evaluate_configuration_boozer_surface import evaluate_configuration
+from diffusion_for_fusion.evaluate_configuration_boozer_surface import evaluate_configuration as evaluate_configuration_boozer
+from diffusion_for_fusion.evaluate_configuration_sheet_curent import evaluate_configuration as evaluate_configuration_sheet
 from sklearn.decomposition import PCA
 import os
 import time
 
-n_samples = 10000
+n_samples = 50
 
 
 # load the data
@@ -18,13 +19,14 @@ Y = Y.reset_index(drop=True) # this is critical for indexing.
 idx_samples = np.random.choice(len(X), n_samples, replace=False)
 Y = Y.iloc[idx_samples].reset_index(drop=True)
 
-n_pca_components = [np.shape(X)[1], 400, 300, 200, 150, 100, 50, 40, 30, 25, 17, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2]
+n_full = np.shape(X)[1]
+n_pca_components = [n_full, 400, 300, 200, 150, 100, 50, 40, 30, 25, 17, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2]
 
 for jj, n_pca in enumerate(n_pca_components):
     print(f"Evaluating PCA with {n_pca} components...")
 
     # do dimensionality reduction
-    if n_pca == np.shape(X)[1]:
+    if n_pca == n_full:
         X_pca = np.copy(X)
     else:
         pca = PCA(n_components=n_pca, svd_solver='full')
@@ -36,7 +38,7 @@ for jj, n_pca in enumerate(n_pca_components):
 
     # storage
     data = {
-        'qs_error': np.zeros(n_samples),
+        'sqrt_qs_error': np.zeros(n_samples),
         'iota': np.zeros(n_samples),
         'aspect_ratio': np.zeros(n_samples),
         'boozer_residual_mse': np.zeros(n_samples),
@@ -49,7 +51,7 @@ for jj, n_pca in enumerate(n_pca_components):
 
     t0 = time.time()
     for ii, xx in enumerate(X_pca):
-        if ii % 1000 == 0:
+        if ii % 10 == 0:
             t1 = time.time()
             print(f"Evaluating configuration {ii}/{n_samples}; time elapsed: {(t1 - t0)/(ii+1):.2f} s per configuration")
         nfp = Y.nfp[ii]
@@ -58,7 +60,8 @@ for jj, n_pca in enumerate(n_pca_components):
         helicity = Y.helicity[ii]
         iota = Y.iota_profile[ii][-1] # rotational transform
         
-        metrics = evaluate_configuration(xx, iota, nfp, stellsym=True, mpol=10, ntor=10, helicity=helicity, G=G)
+        # metrics = evaluate_configuration_boozer(xx, iota, nfp, stellsym=True, mpol=10, ntor=10, helicity=helicity, G=G)
+        metrics, _ = evaluate_configuration_sheet(xx, nfp, stellsym=True, mpol=10, ntor=10, helicity=helicity, M=10, N=10, G=G, ntheta=31, nphi=31, extend_factor=0.1)
 
         qs_err_actual = np.sqrt(Y.qs_error[ii])
         aspect_ratio_actual = Y.aspect_ratio[ii]
@@ -66,11 +69,11 @@ for jj, n_pca in enumerate(n_pca_components):
         # print("")
         # print(f"Configuration {ii}) Device {data['ID'][ii]}, nfp={nfp}, helicity={helicity}:")
         # print(f"QUASR metrics: qs_err={qs_err_actual}, iota={iota}, aspect_ratio={aspect_ratio_actual}")
-        # print(f"Evaluated metrics: qs_err={metrics['qs_error']}, aspect_ratio={metrics['aspect_ratio']}, boozer_residual_mse={metrics['boozer_residual_mse']}")
+        # print(f"Evaluated metrics: qs_err={metrics['sqrt_qs_error']}, aspect_ratio={metrics['aspect_ratio']}, boozer_residual_mse={metrics['boozer_residual_mse']}")
 
-        # collect the data  
-        data['qs_error'][ii] = metrics['qs_error']
-        data['iota'][ii] = iota
+        # collect the data
+        data['sqrt_qs_error'][ii] = metrics['sqrt_qs_error']
+        data['iota'][ii] =  metrics['iota']
         data['aspect_ratio'][ii] = metrics['aspect_ratio']
         data['boozer_residual_mse'][ii] = metrics['boozer_residual_mse']
         data['G'][ii] = G
@@ -91,3 +94,4 @@ for jj, n_pca in enumerate(n_pca_components):
     pd.to_pickle(df, outfilename)
     print(df.head())
     print(f"Data saved to {outfilename}")
+
