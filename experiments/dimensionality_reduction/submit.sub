@@ -1,0 +1,10 @@
+#!/bin/bash
+#SBATCH -J dim_reduction             # Job name
+#SBATCH -o ./slurm_output/job_%j.out    # Name of stdout output file(%j expands to jobId)
+#SBATCH -e ./slurm_output/job_%j.err    # Name of stderr output file(%j expands to jobId)
+#SBATCH -t 02-00:00:00                                # Time limit (dd-hh:mm:ss)
+#SBATCH -p gen
+#SBATCH -n 32    # number of disbatch workers (might as well request a whole node)
+
+disBatch Tasks
+

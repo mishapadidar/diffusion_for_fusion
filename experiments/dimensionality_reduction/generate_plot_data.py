@@ -6,8 +6,14 @@ from diffusion_for_fusion.evaluate_configuration_sheet_curent import evaluate_co
 from sklearn.decomposition import PCA
 import os
 import time
+import sys
 
-n_samples = 50
+"""
+Generate 5 samples with,
+    python generate_plot_data.py 5
+"""
+
+n_samples = int(sys.argv[1])
 
 
 # load the data
@@ -23,7 +29,7 @@ n_full = np.shape(X)[1]
 n_pca_components = [n_full, 400, 300, 200, 150, 100, 50, 40, 30, 25, 17, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2]
 
 for jj, n_pca in enumerate(n_pca_components):
-    print(f"Evaluating PCA with {n_pca} components...")
+    print(f"Evaluating PCA with {n_pca} components...", flush=True)
 
     # do dimensionality reduction
     if n_pca == n_full:
@@ -53,7 +59,7 @@ for jj, n_pca in enumerate(n_pca_components):
     for ii, xx in enumerate(X_pca):
         if ii % 10 == 0:
             t1 = time.time()
-            print(f"Evaluating configuration {ii}/{n_samples}; time elapsed: {(t1 - t0)/(ii+1):.2f} s per configuration")
+            print(f"Evaluating configuration {ii}/{n_samples}; time elapsed: {(t1 - t0)/(ii+1):.2f} s per configuration", flush=True)
         nfp = Y.nfp[ii]
         I_P = sum(np.abs(Y.currents[ii])) * nfp * 2 # total current through hole
         G = (4 * np.pi * 1e-7) * I_P
@@ -92,6 +98,6 @@ for jj, n_pca in enumerate(n_pca_components):
     else:
         df = pd.DataFrame(data)
     pd.to_pickle(df, outfilename)
-    print(df.head())
-    print(f"Data saved to {outfilename}")
+    print(df.head(), flush=True)
+    print(f"Data saved to {outfilename}", flush=True)
 
