@@ -37,7 +37,7 @@ def evaluate_configuration(x, iota, nfp, stellsym=True, mpol=10, ntor=10, helici
     # compute boozer residual
     residual_mse = solver.boozer_residual_mse() # (nphi, ntheta, 3)
 
-    metrics = {'qs_error': qs_error, 'aspect_ratio': surf.aspect_ratio(), 'boozer_residual_mse': residual_mse}
+    metrics = {'sqrt_qs_error': qs_error, 'aspect_ratio': surf.aspect_ratio(), 'boozer_residual_mse': residual_mse}
 
     return metrics
 
@@ -159,6 +159,7 @@ def test_evaluate_configuration():
     
     # which data point
     idx_data = 1203
+    # idx_data = 110825
 
     # load the data set
     Y_init = pd.read_pickle('../data/QUASR.pkl') # y-values

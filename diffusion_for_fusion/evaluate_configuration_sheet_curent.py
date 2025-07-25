@@ -70,7 +70,7 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
     # compute boozer residual
     _, residual_mse = boozer_residual(surf, current, iota)
     
-    metrics = {'qs_error': qs_error, 'iota': iota, 'aspect_ratio': surf.aspect_ratio(), 'boozer_residual_mse': residual_mse}
+    metrics = {'sqrt_qs_error': qs_error, 'iota': iota, 'aspect_ratio': surf.aspect_ratio(), 'boozer_residual_mse': residual_mse}
     # metrics = np.array([qs_error, iota, surf.aspect_ratio(), residual_mse])
 
     return metrics, current
@@ -303,12 +303,17 @@ def test_evaluate_configuration():
     nphi = ntheta = 31
     # which data point
     idx_data = 35
+    # idx_data = 1203
+    # idx_data = 368248
+    # idx_data = 212450
+    # idx_data = 110825
+    # idx_data = 239324
 
     # load the data set
     Y_init = pd.read_pickle('../data/QUASR.pkl') # y-values
     X_init = np.load('../data/dofs.npy') # x-values
     Y_init = Y_init.reset_index(drop=True)
-    print(Y_init.columns)
+    # print(Y_init.columns)
     conditions = ["qs_error", 'iota_profile', "aspect_ratio", "nfp", "helicity", "currents", 'nc_per_hp']
     Y = Y_init[conditions]
     X = X_init
