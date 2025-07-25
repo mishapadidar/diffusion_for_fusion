@@ -1,37 +1,30 @@
 import torch
 import pickle
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
 from sklearn.decomposition import PCA
 from diffusion_for_fusion.ddpm_conditional_diffusion import (init_conditional_diffusion_model_from_config, generate_conditions_for_eval)
 from diffusion_for_fusion.ddpm_fusion import from_standard, to_standard
-from diffusion_for_fusion.evaluate_configuration import evaluate_configuration
+from diffusion_for_fusion.evaluate_configuration_sheet_curent import evaluate_configuration as evaluate_configuration_sheet
 from load_quasr_data import prepare_data_from_config
+import os
 
-# # conditioned on (iota, aspect) for nfp=4, helicity=1;  trained on PCA-9
-# indir = "./output/mean_iota_aspect_ratio/run_uuid_4123533c-960a-411b-9ff0-2a990e3eb305"
-# # conditioned on (iota, aspect, nfp, helicity); trained on PCA-9
-# indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_da5a3230-deca-4709-a775-76b7365fbbd2"
 # # conditioned on (iota, aspect, nfp, helicity); trained on PCA-50 w/ big model
-# indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522"
-# conditioned on (iota, aspect, nfp, helicity); trained on full data
-# indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_6d0b93a0-238c-41bf-b794-5b6a467a2797"
-# # conditioned on (iota, aspect, nfp, helicity); trained on full data with bigger model
-# indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_c4793466-4f56-4860-b5d8-37d8aaef81f8"
-# # conditioned on (iota, aspect, nfp, helicity); trained on PCA-200 w/ big model
-indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_1844e921-bfbe-4de5-a002-4ab92a213e7c"
+indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522/"
 
-# conditions; fig9 uses (1.1, 12, 4, 1)
-n_samples = 256
-mean_iota = 1.1
-aspect_ratio = 12.0
-nfp = 4
-helicity = 1
-use_local_pca = True
-n_local_pca = 3
+# model with exponential scaling
+# indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_4e5d467e-e6fb-43f3-98d2-331059802049"
 
-config_pickle = indir+"/config.pickle"
-model_path = indir+"/model.pth"
+# sample parameters
+n_samples = 50
+n_local_pca = 5
+
+
+# turn on/off local PCA
+use_local_pca = n_local_pca < 661
+
+config_pickle = indir+"config.pickle"
+model_path = indir+"model.pth"
 
 # load the data
 data = pickle.load(open(config_pickle, "rb"))
@@ -46,137 +39,95 @@ diffusion.eval()  # Set to evaluation mode
 model.eval()  # Set to evaluation mode
 
 # load, PCA, and standardize data
-X_train, X_mean, X_std, Y_train, Y_mean, Y_std, pca = prepare_data_from_config(config)
-print(X_train.shape)
-
-# subset the data
-Y_init = from_standard(Y_train, Y_mean, Y_std)
-idx_subset = ((np.abs(Y_init[:,0] - mean_iota)/mean_iota < 0.01) & (np.abs(Y_init[:,1] - aspect_ratio)/aspect_ratio < 0.01) & 
-              (Y_init[:,2] == 4) & (Y_init[:,3] == 1))
-X_train = X_train[idx_subset]
-Y_train = Y_train[idx_subset]
-
-# X_train may be empty now
-n_train = len(X_train)
+_, X_mean, X_std, Y_train, Y_mean, Y_std, pca = prepare_data_from_config(config)
+# Y_raw = from_standard(Y_train, Y_mean, Y_std)
 
 # sample stellarators randomly
-# cond_eval = generate_conditions_for_eval(Y_train, batch_size = n_samples, from_train=False, seed=config.seed, as_tensor = True)
-# # make sure the integer features actually map to integers
-# cond_eval_raw = from_standard(cond_eval, Y_mean, Y_std)
-# cond_eval_raw[:,2:] = torch.round(cond_eval_raw[:,2:])
-# cond_eval, _, _ = to_standard(cond_eval_raw, Y_mean, Y_std)
-# cond_eval = cond_eval.type(torch.float32)
-
-# use only one condition
-cond_eval_raw = torch.zeros((n_samples, 4))
-cond_eval_raw[:,0] = mean_iota # iota
-cond_eval_raw[:,1] = aspect_ratio # aspect
-cond_eval_raw[:,2] = nfp # nfp
-cond_eval_raw[:,3] = helicity # helicity
-cond_eval, _, _ = to_standard(cond_eval_raw, Y_mean, Y_std)
+batch_size = max(n_samples, 1000) # to avoid too small batch size for local pca
+cond_eval = generate_conditions_for_eval(Y_train, batch_size = batch_size, from_train=True, seed=config.seed, as_tensor = True)
 cond_eval = cond_eval.type(torch.float32)
 
 # sample
-samples = diffusion.sample(cond_eval)
-samples = samples.cpu().detach().numpy()
+X_samples = diffusion.sample(cond_eval)
+X_samples = X_samples.cpu().detach().numpy()
 
-# un-standardize samples for VMEC
-samples = from_standard(samples, X_mean, X_std)
-if n_train > 0:
-    X_train = from_standard(X_train, X_mean, X_std)
+# un-standardize samples for evaluation
+X_samples = from_standard(X_samples, X_mean, X_std)
+cond_eval = from_standard(cond_eval, Y_mean, Y_std)
 
-# convert to full size x for VMEC
+# convert to full size x
 if config.use_pca:
-    samples = pca.inverse_transform(samples)
-    if n_train > 0:
-        X_train = pca.inverse_transform(X_train)
+    X_samples = pca.inverse_transform(X_samples)
 
 # local PCA
 if use_local_pca:
     pca = PCA(n_components=n_local_pca, svd_solver='full')
-    pca.fit_transform(samples)
-    samples = pca.transform(samples)
-    samples = pca.inverse_transform(samples)
+    pca.fit_transform(X_samples)
+    X_samples = pca.transform(X_samples)
+    X_samples = pca.inverse_transform(X_samples)
 
-""" Plot the sampled configurations """
+# only keep first n_samples
+X_samples = X_samples[:n_samples]
+cond_eval = cond_eval[:n_samples]
 
-# PCA for plotting in 2D data
-pca_plot = PCA(n_components=2, svd_solver='full')
-samples_2d = pca_plot.fit_transform(samples)
-if n_train > 0:
-    X_2d = pca_plot.transform(X_train)
-    plt.scatter(X_2d[:,0], X_2d[:,1], alpha=0.6, label='actual')
-plt.scatter(samples_2d[:,0], samples_2d[:,1], alpha=0.6, label='diffusion')
-plt.legend(loc='upper right')
-plt.show()
 
 """ Evaluate the sampled configuration """
 
-# destandardize cond_eval for print statements and saving
-cond_eval = from_standard(cond_eval, Y_mean, Y_std)
+# we have to change the save order otherwise
+assert config.conditions[0] == 'mean_iota', "mean_iota should be the first condition"
+assert config.conditions[1] == 'aspect_ratio', "aspect_ratio should be the second condition"
+assert config.conditions[2] == 'nfp',   "nfp should be the third condition"
+assert config.conditions[3] == 'helicity',  "helicity should be the last condition"
+                                
 
-# evaluate the samples
-Y = np.zeros((n_samples, 3))
-for ii, xx in enumerate(samples):
-    res = evaluate_configuration(x=xx,
-                        nfp=nfp,
-                        mpol=10,
-                        ntor=10,
-                        helicity_n=helicity,
-                        # vmec_input="../../vmec_input_files/input.nfp4_QH_warm_start_high_res",
-                        vmec_input="../../vmec_input_files/input.nfp4_torus",
-                        # vmec_input="../../vmec_input_files/input.new_QH_andrew",
-                        plot=False)
-    Y[ii] = res
-    print(f"{ii})", res, cond_eval[ii].numpy())
-
-# save the data
-outfilename = indir + f"/evaluations_samples_iota_{mean_iota}_aspect_{aspect_ratio}_nfp_{nfp}_helicity_{helicity}_local_pca_{use_local_pca}_{n_local_pca}.pickle"
-outdata = {}
-outdata['Y_samples'] = Y # evaluations
-outdata['X_samples'] = samples # raw samples
-outdata['Y_conditions'] = cond_eval # target values of Y
-outdata['mean_iota'] = mean_iota
-outdata['aspect_ratio'] = aspect_ratio
-outdata['nfp'] = nfp
-outdata['helicity'] = helicity
-outdata['n_local_pca'] = n_local_pca
-outdata['use_local_pca'] = use_local_pca
-pickle.dump(outdata, open(outfilename, "wb"))
-print("dumped data to", outfilename)
+# storage
+data = {
+    'sqrt_qs_error': np.zeros(n_samples),
+    'iota': np.zeros(n_samples),
+    'aspect_ratio': np.zeros(n_samples),
+    'boozer_residual_mse': np.zeros(n_samples),
+    # 'mean_iota_condition': cond_eval[:, 0].numpy(),  # mean_iota is the first condition
+    # 'aspect_ratio_condition': cond_eval[:, 1].numpy(),  # aspect_ratio is the second condition
+    # 'nfp_condition': cond_eval[:, 2].numpy(),  # nfp is the third condition
+    # 'helicity_condition': cond_eval[:, 3].numpy(),  # helicity is the last condition
+    'n_local_pca': n_local_pca*np.ones(n_samples, dtype=int),
+    'use_local_pca': use_local_pca*np.ones(n_samples, dtype=bool)
+}
+for cond in config.conditions:
+    data[cond + '_condition'] = cond_eval[:, config.conditions.index(cond)].numpy()
 
 
-""" Evaluate the actual dataset """
-if n_train > 0:
-    # random subset
-    idx = np.random.randint(0, len(X_train), n_samples)
-    X = X_train[idx]
-    # storage
-    Y = np.zeros((n_samples, 3))
+for ii, xx in enumerate(X_samples):
 
-    # evaluate the actual data
-    for ii, xx in enumerate(X):
-        res = evaluate_configuration(x=xx,
-                            nfp=nfp,
-                            mpol=10,
-                            ntor=10,
-                            helicity_n=helicity,
-                            # vmec_input="../../vmec_input_files/input.nfp4_QH_warm_start_high_res",
-                            vmec_input="../../vmec_input_files/input.nfp4_torus",
-                            # vmec_input="../../vmec_input_files/input.new_QH_andrew",
-                            plot=False)
-        Y[ii] = res
-        print(f"{ii})", res)
+    print("")
+    
+    # evaluate the configuration
+    iota = cond_eval[ii, 0].item()  # first column is mean_iota
+    nfp = int(cond_eval[ii, 2].item())  # third column is nfp
+    helicity = cond_eval[ii, 3].item()  # last column is helicity
+    # field topology doesnt depend on G
+    metrics, _ = evaluate_configuration_sheet(xx, nfp, stellsym=True, mpol=10, ntor=10, helicity=helicity, M=10, N=10, G=1.0, ntheta=31, nphi=31, extend_factor=0.1)
 
-    # save the data
-    outdata = {}
-    outdata['Y'] = Y # evaluations
-    outdata['X'] = X # raw data
-    outdata['mean_iota'] = mean_iota
-    outdata['aspect_ratio'] = aspect_ratio
-    outdata['nfp'] = nfp
-    outdata['helicity'] = helicity
-    outdata['n_local_pca'] = n_local_pca
-    outfilename = indir + f"/evaluations_actual_iota_{mean_iota}_aspect_{aspect_ratio}_nfp_{nfp}_helicity_{helicity}_local_pca_{use_local_pca}_{n_local_pca}.pickle"
-    pickle.dump(outdata, open(outfilename, "wb"))
-    print("dumped data to", outfilename)
+    # collect the data  
+    data['sqrt_qs_error'][ii] = metrics['sqrt_qs_error']
+    data['iota'][ii] = iota
+    data['aspect_ratio'][ii] = metrics['aspect_ratio']
+    data['boozer_residual_mse'][ii] = metrics['boozer_residual_mse']
+    print(f"sqrt_qs_error={metrics['sqrt_qs_error']}, iota={iota}, aspect_ratio={metrics['aspect_ratio']}, nfp={nfp}, helicity={helicity}, boozer_residual_mse={metrics['boozer_residual_mse']}")
+
+
+# save data
+outdir = indir + "evaluations/"
+if not os.path.exists(outdir):
+    os.makedirs(outdir, exist_ok=True)
+# save samples
+outfilename = outdir + f'samples_pca_{n_local_pca}.pkl'
+np.save(outfilename, X_samples)
+print(f"Samples saved to {outfilename}")
+# save metrics
+outfilename = outdir + f'metrics_pca_{n_local_pca}.pkl'
+df = pd.DataFrame(data)
+# pd.to_pickle(df, outfilename)
+df.to_csv(outfilename, index=False)
+print(df.head())
+print(f"Metrics saved to {outfilename}")
