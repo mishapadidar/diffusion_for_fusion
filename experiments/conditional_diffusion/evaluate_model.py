@@ -14,8 +14,8 @@ import time
 indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522/"
 
 # sample parameters
-n_samples = 2
-n_local_pca = 661
+n_samples = 128
+n_local_pca = 5
 
 
 # turn on/off local PCA
@@ -91,6 +91,7 @@ else:
 for ii in range(n_samples):
 
     print("")
+    print(f"Configuration {ii}/{n_samples})")
 
     # # generate one condition
     cond_local = torch.ones((batch_size, len(config.conditions)), dtype=torch.float32)  # condition for local PCA
@@ -127,8 +128,8 @@ for ii in range(n_samples):
     
     # evaluate the configuration
     iota = cond_local[0, iota_idx].item()  # first column is mean_iota
-    nfp = int(cond_local[0, nfp_idx].item())  # third column is nfp
-    helicity = cond_local[0, helicity_idx].item()  # last column is helicity
+    nfp = round(cond_local[0, nfp_idx].item())  # third column is nfp
+    helicity = round(cond_local[0, helicity_idx].item())  # last column is helicity
     # field topology doesnt depend on G
     metrics, _ = evaluate_configuration_sheet(xx, nfp, stellsym=True, mpol=10, ntor=10, helicity=helicity, M=10, N=10, G=1.0, ntheta=31, nphi=31, extend_factor=0.1)
 
@@ -138,7 +139,7 @@ for ii in range(n_samples):
     data['aspect_ratio'][ii] = metrics['aspect_ratio']
     data['boozer_residual_mse'][ii] = metrics['boozer_residual_mse']
     X_samples[ii, :] = xx
-
+    # print("Configuration", ii, cond_local[0])
     print(f"sqrt_qs_error={metrics['sqrt_qs_error']}, iota={iota}, aspect_ratio={metrics['aspect_ratio']}, nfp={nfp}, helicity={helicity}, boozer_residual_mse={metrics['boozer_residual_mse']}")
 
 
