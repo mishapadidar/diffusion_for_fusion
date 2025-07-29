@@ -14,8 +14,8 @@ import time
 indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522/"
 
 # sample parameters
-n_samples = 32
-n_local_pca = 2
+n_samples = 128
+n_local_pca = 661
 
 
 # turn on/off local PCA
@@ -47,6 +47,10 @@ n_dim_raw = np.shape(X_raw)[1]  # number of dimensions in the raw data
 seed = int(time.time()) % (2**32 - 1)  # Use current time to generate a seed
 cond_samples = generate_conditions_for_eval(Y_train, batch_size = n_samples, from_train=True, seed=seed, as_tensor = True)
 
+# map conditions to the raw data space
+cond_samples_raw = from_standard(cond_samples, Y_mean, Y_std)
+
+
 # # uncomment to use figure 11 conditions
 # print(config.conditions)
 # idx = ((np.abs(Y_raw[:, 0] - 2.30)/2.30 < 0.001) & (np.abs(Y_raw[:, 1] - 12)/12 < 0.1)
@@ -62,23 +66,26 @@ cond_samples = generate_conditions_for_eval(Y_train, batch_size = n_samples, fro
 # indices of the conditions
 iota_idx = config.conditions.index('mean_iota')
 nfp_idx = config.conditions.index('nfp')
-helicity_idx = config.conditions.index('helicity')    
+helicity_idx = config.conditions.index('helicity')   
+aspect_idx = config.conditions.index('aspect_ratio') 
 
 print("iota index:", iota_idx)
 print("nfp index:", nfp_idx)
 print("helicity index:", helicity_idx)
+print("aspect ratio index:", aspect_idx)
 
 # storage
 data = {
     'sqrt_qs_error': np.zeros(n_samples),
-    'iota': np.zeros(n_samples),
     'aspect_ratio': np.zeros(n_samples),
     'boozer_residual_mse': np.zeros(n_samples),
     'n_local_pca': n_local_pca*np.ones(n_samples, dtype=int),
-    'use_local_pca': use_local_pca*np.ones(n_samples, dtype=bool)
+    'use_local_pca': use_local_pca*np.ones(n_samples, dtype=bool),
+    'iota_condition': cond_samples_raw[:, iota_idx].detach().numpy(),
+    'aspect_ratio_condition': cond_samples_raw[:, aspect_idx].detach().numpy(),
+    'nfp_condition': np.round(cond_samples_raw[:, nfp_idx]).detach().numpy().astype(int), 
+    'helicity_condition': np.round(cond_samples_raw[:, helicity_idx]).detach().numpy().astype(int),
 }
-for cond in config.conditions:
-    data[cond + '_condition'] = cond_samples[:, config.conditions.index(cond)].numpy()
 
 # storage for samples
 X_samples = np.zeros((n_samples, n_dim_raw))
@@ -127,20 +134,20 @@ for ii in range(n_samples):
     xx = X_local[0]
     
     # evaluate the configuration
-    iota = cond_local[0, iota_idx].item()  # first column is mean_iota
+    # iota = cond_local[0, iota_idx].item()  # first column is mean_iota
     nfp = round(cond_local[0, nfp_idx].item())  # third column is nfp
     helicity = round(cond_local[0, helicity_idx].item())  # last column is helicity
     # field topology doesnt depend on G
     metrics, _ = evaluate_configuration_sheet(xx, nfp, stellsym=True, mpol=10, ntor=10, helicity=helicity, M=10, N=10, G=1.0, ntheta=31, nphi=31, extend_factor=0.1)
 
-    # collect the data  
+    # collect the data
     data['sqrt_qs_error'][ii] = metrics['sqrt_qs_error']
-    data['iota'][ii] = iota
+    # data['iota'][ii] = iota
     data['aspect_ratio'][ii] = metrics['aspect_ratio']
     data['boozer_residual_mse'][ii] = metrics['boozer_residual_mse']
     X_samples[ii, :] = xx
     # print("Configuration", ii, cond_local[0])
-    print(f"sqrt_qs_error={metrics['sqrt_qs_error']}, iota={iota}, aspect_ratio={metrics['aspect_ratio']}, nfp={nfp}, helicity={helicity}, boozer_residual_mse={metrics['boozer_residual_mse']}")
+    print(f"sqrt_qs_error={metrics['sqrt_qs_error']}, aspect_ratio={metrics['aspect_ratio']}, nfp={nfp}, helicity={helicity}, boozer_residual_mse={metrics['boozer_residual_mse']}")
 
 
 # save data
