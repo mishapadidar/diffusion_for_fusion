@@ -19,7 +19,7 @@ This provides a performance baseline for the model -- it can't be better than th
 indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522/"
 
 # sample parameters
-n_samples = 32
+n_samples = 64
 
 config_pickle = indir+"config.pickle"
 model_path = indir+"model.pth"
@@ -60,8 +60,6 @@ idx_samples = np.random.choice(len(X_raw), n_samples, replace=False)
 X_samples = X_raw[idx_samples]
 Y_samples = Y_raw[idx_samples]
 
-# TODO: remove
-print(Y_samples)
 
 # indices of the conditions
 iota_idx = config.conditions.index('mean_iota')
@@ -80,9 +78,11 @@ print("helicity index:", helicity_idx)
 # storage
 data = {
     'sqrt_qs_error': np.zeros(n_samples),
-    'iota': np.zeros(n_samples),
     'aspect_ratio': np.zeros(n_samples),
     'boozer_residual_mse': np.zeros(n_samples),
+    'iota': Y_samples[:, iota_idx], # from data
+    'nfp': np.round(Y_samples[:, nfp_idx]).astype(int), # from data
+    'helicity': np.round(Y_samples[:, helicity_idx]).astype(int), # from data
 }
 
 
@@ -100,7 +100,7 @@ for ii, xx in enumerate(X_samples):
 
     # collect the data  
     data['sqrt_qs_error'][ii] = metrics['sqrt_qs_error']
-    data['iota'][ii] = iota
+    # data['iota'][ii] = iota
     data['aspect_ratio'][ii] = metrics['aspect_ratio']
     data['boozer_residual_mse'][ii] = metrics['boozer_residual_mse']
     X_samples[ii, :] = xx
