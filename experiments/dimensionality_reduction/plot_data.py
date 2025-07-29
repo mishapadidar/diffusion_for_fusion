@@ -38,8 +38,8 @@ df_plt['sqrt_qs_error'] = df_plt['sqrt_qs_error'] * 100  # convert to percentage
 # convert qs_error to percentage
 df_plt['log_qs_error'] = np.log10(df_plt['sqrt_qs_error'])
 
-# drop n_pca < 5
-df_plt = df_plt.loc[df_plt.n_pca >= 6].reset_index(drop=True)
+# drop n_pca < 7 (too few components)
+df_plt = df_plt.loc[df_plt.n_pca > 6].reset_index(drop=True)
 
 """ Plot the relative error in statistics """
 
