@@ -19,7 +19,7 @@ This provides a performance baseline for the model -- it can't be better than th
 indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522/"
 
 # sample parameters
-n_samples = 256
+n_samples = 32
 
 config_pickle = indir+"config.pickle"
 model_path = indir+"model.pth"
@@ -114,11 +114,22 @@ if not os.path.exists(outdir):
     os.makedirs(outdir, exist_ok=True)
 # save samples
 outfilename = outdir + f'baseline_samples'
+# np.save(outfilename, X_samples)
+if os.path.exists(outfilename + '.npy'):
+    existing_samples = np.load(outfilename + '.npy')
+    X_samples = np.concatenate([existing_samples, X_samples], axis=0)
 np.save(outfilename, X_samples)
 print(f"Samples saved to {outfilename}")
+
 # save metrics
 outfilename = outdir + f'baseline_metrics.csv'
-df = pd.DataFrame(data)
+# df = pd.DataFrame(data)
+# append to existing file if it exists
+if os.path.exists(outfilename):
+    existing_df = pd.read_csv(outfilename)
+    df = pd.concat([existing_df, pd.DataFrame(data)], ignore_index=True)
+else:
+    df = pd.DataFrame(data)
 df.to_csv(outfilename, index=False)
 print(df.head())
 print(f"Metrics saved to {outfilename}")
