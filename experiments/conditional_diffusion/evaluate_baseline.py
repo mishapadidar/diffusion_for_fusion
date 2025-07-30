@@ -5,7 +5,8 @@ import pandas as pd
 from sklearn.decomposition import PCA
 from diffusion_for_fusion.ddpm_conditional_diffusion import (init_conditional_diffusion_model_from_config, generate_conditions_for_eval)
 from diffusion_for_fusion.ddpm_fusion import from_standard, to_standard
-from diffusion_for_fusion.evaluate_configuration_sheet_curent import evaluate_configuration as evaluate_configuration_sheet
+# from diffusion_for_fusion.evaluate_configuration_sheet_curent import evaluate_configuration as evaluate_configuration_sheet
+from diffusion_for_fusion.evaluate_configuration_vmec import evaluate_configuration as evaluate_configuration_vmec
 from load_quasr_data import prepare_data_from_config
 import os
 import time
@@ -19,7 +20,7 @@ This provides a performance baseline for the model -- it can't be better than th
 indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522/"
 
 # sample parameters
-n_samples = 64
+n_samples = 32
 
 config_pickle = indir+"config.pickle"
 model_path = indir+"model.pth"
@@ -78,9 +79,10 @@ print("helicity index:", helicity_idx)
 # storage
 data = {
     'sqrt_qs_error': np.zeros(n_samples),
+    'qs_error_2term': np.zeros(n_samples),
     'aspect_ratio': np.zeros(n_samples),
-    'boozer_residual_mse': np.zeros(n_samples),
-    'iota': Y_samples[:, iota_idx], # from data
+    'iota': np.zeros(n_samples),
+    'success': np.zeros(n_samples, dtype=bool),
     'nfp': np.round(Y_samples[:, nfp_idx]).astype(int), # from data
     'helicity': np.round(Y_samples[:, helicity_idx]).astype(int), # from data
 }
@@ -92,20 +94,22 @@ for ii, xx in enumerate(X_samples):
     print(f"Configuration {ii}/{n_samples})")
 
     # evaluate the configuration
-    iota = Y_samples[ii, iota_idx].item()  # first column is mean_iota
+    iota_actual = Y_samples[ii, iota_idx].item()  # first column is mean_iota
     nfp = round(Y_samples[ii, nfp_idx].item())  # third column is nfp
     helicity = round(Y_samples[ii, helicity_idx].item())  # last column is helicity
     # field topology doesnt depend on G
-    metrics, _ = evaluate_configuration_sheet(xx, nfp, stellsym=True, mpol=10, ntor=10, helicity=helicity, M=10, N=10, G=1.0, ntheta=31, nphi=31, extend_factor=0.1)
+    # metrics, _ = evaluate_configuration_sheet(xx, nfp, stellsym=True, mpol=10, ntor=10, helicity=helicity, M=10, N=10, G=1.0, ntheta=31, nphi=31, extend_factor=0.1)
+    metrics, _ = evaluate_configuration_vmec(xx, nfp, helicity=helicity, vmec_input="../../diffusion_for_fusion/input.nfp4_template")
 
     # collect the data  
     data['sqrt_qs_error'][ii] = metrics['sqrt_qs_error']
-    # data['iota'][ii] = iota
+    data['qs_error_2term'][ii] = metrics['qs_error_2term']
+    data['iota'][ii] =  metrics['iota']
     data['aspect_ratio'][ii] = metrics['aspect_ratio']
-    data['boozer_residual_mse'][ii] = metrics['boozer_residual_mse']
+    data['success'][ii] = metrics['success']
     X_samples[ii, :] = xx
-    print(f"Actuals: iota {iota}, aspect {Y_samples[ii, aspect_idx].item()} nfp={nfp}, helicity={helicity}.")
-    print(f"Estimates: sqrt_qs_error={metrics['sqrt_qs_error']}, iota={iota}, aspect_ratio={metrics['aspect_ratio']}, nfp={nfp}, helicity={helicity}, boozer_residual_mse={metrics['boozer_residual_mse']}")
+    print(f"Actuals: iota {iota_actual}, aspect {Y_samples[ii, aspect_idx].item()} nfp={nfp}, helicity={helicity}.")
+    print(f"Estimates: sqrt_qs_error={metrics['sqrt_qs_error']}, iota={metrics['iota']}, aspect_ratio={metrics['aspect_ratio']}, nfp={nfp}, helicity={helicity}")
 
 
 # save data

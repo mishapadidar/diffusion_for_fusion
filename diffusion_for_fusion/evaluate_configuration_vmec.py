@@ -1,8 +1,8 @@
 import numpy as np
 from simsopt.geo import SurfaceXYZTensorFourier
-from simsopt.mhd import Vmec, Quasisymmetry, Boozer
+from simsopt.mhd import Vmec, Quasisymmetry, Boozer, QuasisymmetryRatioResidual
 
-def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, nphi=51, ntheta=51):
+def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, nphi=51, ntheta=51, vmec_input="input.nfp4_template"):
     """Evaluate a surface configuration with VMEC.
 
     QUASR data uses mpol=ntor=10 and stellsym=True.
@@ -34,8 +34,7 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
         quadpoints_theta=np.linspace(0, 1, ntheta, endpoint=False))
     surf.x = x
 
-    vmec_input = "input.nfp4_template"
-    vmec = Vmec(vmec_input, verbose=True, keep_all_files=False, range_surface='field period')
+    vmec = Vmec(vmec_input, verbose=False, keep_all_files=False, range_surface='field period')
     # change nfp
     vmec.indata.nfp = nfp
     # run
@@ -69,15 +68,18 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
                         helicity_n=helicity,
                         normalization='symmetric',
                         weight='stellopt_ornl') # (M, N) you want in |B|
-        qs_error = qs.J().item()
+        sqrt_qs_error = qs.J().item()
+
+        qs_error_2term = QuasisymmetryRatioResidual(vmec, surfaces=[1.0], helicity_m=1, helicity_n= helicity).total()
     else:
         # fallback if VMEC fails
         iota = np.nan
-        qs_error = np.nan
+        sqrt_qs_error = np.nan
+        qs_error_2term = np.nan
 
-    metrics = {'sqrt_qs_error': qs_error, 'iota': iota, 'aspect_ratio': aspect_ratio, 'success': success}
+    metrics = {'sqrt_qs_error': sqrt_qs_error, 'qs_error_2term': qs_error_2term, 'iota': iota, 'aspect_ratio': aspect_ratio, 'success': success}
 
-    return metrics
+    return metrics, vmec
 
 
 def test_evaluate_configuration():
@@ -113,7 +115,7 @@ def test_evaluate_configuration():
     nfp = Y.nfp[idx_data]
 
     # evaluate the configuration
-    metrics = evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=Y.helicity[idx_data], ntheta=31, nphi=31)
+    metrics, _ = evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=Y.helicity[idx_data], ntheta=31, nphi=31)
     print('metrics', metrics)
 
 
