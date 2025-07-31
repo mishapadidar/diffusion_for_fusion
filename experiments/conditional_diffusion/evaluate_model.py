@@ -14,8 +14,11 @@ import time
 # conditioned on (iota, aspect, nfp, helicity); trained on PCA-50 w/ big model
 indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522/"
 
+# # conditioned on (iota, aspect, nfp, helicity); trained on PCA-200 w/ big model
+# indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_1844e921-bfbe-4de5-a002-4ab92a213e7c/"
+
 # sample parameters
-n_samples = 12
+n_samples = 128
 n_local_pca = 661
 
 
@@ -81,14 +84,15 @@ data = {
     'sqrt_qs_error_2term': np.zeros(n_samples),
     'sqrt_non_qs_error': np.zeros(n_samples),
     'aspect_ratio': np.zeros(n_samples),
-    'iota': np.zeros(n_samples),
+    'iota_edge': np.zeros(n_samples),
+    'mean_iota': np.zeros(n_samples),
     'success': np.zeros(n_samples, dtype=bool),
     'n_local_pca': n_local_pca*np.ones(n_samples, dtype=int),
     'use_local_pca': use_local_pca*np.ones(n_samples, dtype=bool),
-    'iota_condition': cond_samples_raw[:, iota_idx].detach().numpy(),
+    'mean_iota_condition': cond_samples_raw[:, iota_idx].detach().numpy(),
     'aspect_ratio_condition': cond_samples_raw[:, aspect_idx].detach().numpy(),
-    'nfp_condition': np.round(cond_samples_raw[:, nfp_idx]).detach().numpy().astype(int), 
-    'helicity_condition': np.round(cond_samples_raw[:, helicity_idx]).detach().numpy().astype(int),
+    'nfp': np.round(cond_samples_raw[:, nfp_idx]).detach().numpy().astype(int), 
+    'helicity': np.round(cond_samples_raw[:, helicity_idx]).detach().numpy().astype(int),
 }
 
 # storage for samples
@@ -149,16 +153,17 @@ for ii in range(n_samples):
     data['sqrt_qs_error_boozer'][ii] = metrics['sqrt_qs_error_boozer']
     data['sqrt_qs_error_2term'][ii] = metrics['sqrt_qs_error_2term']
     data['sqrt_non_qs_error'][ii] = metrics['sqrt_non_qs_error']
-    data['iota'][ii] = metrics['iota']
+    data['iota_edge'][ii] = metrics['iota_edge']
+    data['mean_iota'][ii] = metrics['mean_iota']
     data['aspect_ratio'][ii] = metrics['aspect_ratio']
     data['success'][ii] = metrics['success']
     X_samples[ii, :] = xx
     # print("Configuration", ii, cond_local[0])
-    print(f"success={metrics['success']}, sqrt_qs_error_boozer={metrics['sqrt_qs_error_boozer']}, aspect_ratio={metrics['aspect_ratio']}, iota={metrics['iota']}, nfp={nfp}, helicity={helicity}")
+    print(f"success={metrics['success']}, sqrt_qs_error_boozer={metrics['sqrt_qs_error_boozer']}, aspect_ratio={metrics['aspect_ratio']}, mean_iota={metrics['mean_iota']}, nfp={nfp}, helicity={helicity}")
 
 
 # save data
-outdir = indir + "evaluations/"
+outdir = indir + "in_sample_evaluations/"
 if not os.path.exists(outdir):
     os.makedirs(outdir, exist_ok=True)
 # save samples

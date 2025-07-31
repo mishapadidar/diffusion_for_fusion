@@ -58,7 +58,8 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
     aspect_ratio = surf.aspect_ratio()
     if success:
         # compute iota
-        iota = vmec.iota_edge()
+        iota_edge = vmec.iota_edge()
+        mean_iota = vmec.mean_iota()
 
         # compute QS-error
         s = 1.0
@@ -77,7 +78,8 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
         sqrt_non_qs_error = BoozerNonQuasiSymmetricRatio(boozer, s=s, helicity=0, nphi=nphi, ntheta=ntheta)
     else:
         # fallback if VMEC fails
-        iota = np.nan
+        iota_edge = np.nan
+        mean_iota = np.nan
         sqrt_qs_error_boozer = np.nan
         sqrt_qs_error_2term = np.nan
         sqrt_non_qs_error = np.nan
@@ -85,7 +87,8 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
     metrics = {'sqrt_qs_error_boozer': sqrt_qs_error_boozer,
                'sqrt_qs_error_2term': sqrt_qs_error_2term, 
                'sqrt_non_qs_error': sqrt_non_qs_error,
-               'iota': iota, 
+               'iota_edge': iota_edge,
+               'mean_iota': mean_iota, 
                'aspect_ratio': aspect_ratio,
                'success': success}
 

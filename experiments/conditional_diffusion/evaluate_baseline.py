@@ -16,11 +16,14 @@ Evaluate the training data used to train the conditional diffusion model.
 This provides a performance baseline for the model -- it can't be better than the training data.
 """
 
-# conditioned on (iota, aspect, nfp, helicity); trained on PCA-50 w/ big model
+# PCA-50 data
 indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522/"
 
+# PCA-200 data
+# indir = "output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_1844e921-bfbe-4de5-a002-4ab92a213e7c/"
+
 # sample parameters
-n_samples = 32
+n_samples = 1
 
 config_pickle = indir+"config.pickle"
 model_path = indir+"model.pth"
@@ -82,10 +85,13 @@ data = {
     'sqrt_qs_error_2term': np.zeros(n_samples),
     'sqrt_non_qs_error': np.zeros(n_samples),
     'aspect_ratio': np.zeros(n_samples),
-    'iota': np.zeros(n_samples),
+    'mean_iota': np.zeros(n_samples),
+    'iota_edge': np.zeros(n_samples),
     'success': np.zeros(n_samples, dtype=bool),
-    'nfp': np.round(Y_samples[:, nfp_idx]).astype(int), # from data
-    'helicity': np.round(Y_samples[:, helicity_idx]).astype(int), # from data
+    'nfp': np.round(Y_samples[:, nfp_idx]).astype(int), # from dataset
+    'helicity': np.round(Y_samples[:, helicity_idx]).astype(int), # from dataset
+    'mean_iota_condition': Y_samples[:, iota_idx].astype(float),  # from dataset
+    'aspect_ratio_condition': Y_samples[:, aspect_idx].astype(float),  # from dataset
 }
 
 
@@ -95,7 +101,8 @@ for ii, xx in enumerate(X_samples):
     print(f"Configuration {ii}/{n_samples})")
 
     # evaluate the configuration
-    iota_actual = Y_samples[ii, iota_idx].item()  # first column is mean_iota
+    mean_iota_condition = Y_samples[ii, iota_idx].item()  # first column is mean_iota
+    aspect_condition = Y_samples[ii, aspect_idx].item()  # second column is aspect_ratio
     nfp = round(Y_samples[ii, nfp_idx].item())  # third column is nfp
     helicity = round(Y_samples[ii, helicity_idx].item())  # last column is helicity
     # field topology doesnt depend on G
@@ -106,16 +113,18 @@ for ii, xx in enumerate(X_samples):
     data['sqrt_qs_error_boozer'][ii] = metrics['sqrt_qs_error_boozer']
     data['sqrt_qs_error_2term'][ii] = metrics['sqrt_qs_error_2term']
     data['sqrt_non_qs_error'][ii] = metrics['sqrt_non_qs_error']
-    data['iota'][ii] =  metrics['iota']
+    data['mean_iota'][ii] =  metrics['mean_iota']
+    data['iota_edge'][ii] =  metrics['iota_edge']
     data['aspect_ratio'][ii] = metrics['aspect_ratio']
     data['success'][ii] = metrics['success']
+
     X_samples[ii, :] = xx
-    print(f"Actuals: iota {iota_actual}, aspect {Y_samples[ii, aspect_idx].item()} nfp={nfp}, helicity={helicity}.")
-    print(f"Estimates: sqrt_qs_error_boozer={metrics['sqrt_qs_error_boozer']}, iota={metrics['iota']}, aspect_ratio={metrics['aspect_ratio']}, nfp={nfp}, helicity={helicity}")
+    print(f"Actuals: iota {mean_iota_condition}, aspect {aspect_condition} nfp={nfp}, helicity={helicity}.")
+    print(f"Estimates: sqrt_qs_error_boozer={metrics['sqrt_qs_error_boozer']}, mean_iota={metrics['mean_iota']}, aspect_ratio={metrics['aspect_ratio']}, nfp={nfp}, helicity={helicity}")
 
 
 # save data
-outdir = indir + "evaluations/"
+outdir = indir + "in_sample_evaluations/"
 if not os.path.exists(outdir):
     os.makedirs(outdir, exist_ok=True)
 # save samples
