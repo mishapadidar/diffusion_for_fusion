@@ -78,8 +78,9 @@ print("helicity index:", helicity_idx)
 
 # storage
 data = {
-    'sqrt_qs_error': np.zeros(n_samples),
-    'qs_error_2term': np.zeros(n_samples),
+    'sqrt_qs_error_boozer': np.zeros(n_samples),
+    'sqrt_qs_error_2term': np.zeros(n_samples),
+    'sqrt_non_qs_error': np.zeros(n_samples),
     'aspect_ratio': np.zeros(n_samples),
     'iota': np.zeros(n_samples),
     'success': np.zeros(n_samples, dtype=bool),
@@ -102,14 +103,15 @@ for ii, xx in enumerate(X_samples):
     metrics, _ = evaluate_configuration_vmec(xx, nfp, helicity=helicity, vmec_input="../../diffusion_for_fusion/input.nfp4_template")
 
     # collect the data  
-    data['sqrt_qs_error'][ii] = metrics['sqrt_qs_error']
-    data['qs_error_2term'][ii] = metrics['qs_error_2term']
+    data['sqrt_qs_error_boozer'][ii] = metrics['sqrt_qs_error_boozer']
+    data['sqrt_qs_error_2term'][ii] = metrics['sqrt_qs_error_2term']
+    data['sqrt_non_qs_error'][ii] = metrics['sqrt_non_qs_error']
     data['iota'][ii] =  metrics['iota']
     data['aspect_ratio'][ii] = metrics['aspect_ratio']
     data['success'][ii] = metrics['success']
     X_samples[ii, :] = xx
     print(f"Actuals: iota {iota_actual}, aspect {Y_samples[ii, aspect_idx].item()} nfp={nfp}, helicity={helicity}.")
-    print(f"Estimates: sqrt_qs_error={metrics['sqrt_qs_error']}, iota={metrics['iota']}, aspect_ratio={metrics['aspect_ratio']}, nfp={nfp}, helicity={helicity}")
+    print(f"Estimates: sqrt_qs_error_boozer={metrics['sqrt_qs_error_boozer']}, iota={metrics['iota']}, aspect_ratio={metrics['aspect_ratio']}, nfp={nfp}, helicity={helicity}")
 
 
 # save data

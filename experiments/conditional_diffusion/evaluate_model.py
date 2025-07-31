@@ -77,8 +77,9 @@ print("aspect ratio index:", aspect_idx)
 
 # storage
 data = {
-    'sqrt_qs_error': np.zeros(n_samples),
-    'qs_error_2term': np.zeros(n_samples),
+    'sqrt_qs_error_boozer': np.zeros(n_samples),
+    'sqrt_qs_error_2term': np.zeros(n_samples),
+    'sqrt_non_qs_error': np.zeros(n_samples),
     'aspect_ratio': np.zeros(n_samples),
     'iota': np.zeros(n_samples),
     'success': np.zeros(n_samples, dtype=bool),
@@ -145,14 +146,15 @@ for ii in range(n_samples):
     metrics, _ = evaluate_configuration_vmec(xx, nfp, helicity=helicity, vmec_input="../../diffusion_for_fusion/input.nfp4_template")
 
     # collect the data
-    data['sqrt_qs_error'][ii] = metrics['sqrt_qs_error']
-    data['qs_error_2term'][ii] = metrics['qs_error_2term']
+    data['sqrt_qs_error_boozer'][ii] = metrics['sqrt_qs_error_boozer']
+    data['sqrt_qs_error_2term'][ii] = metrics['sqrt_qs_error_2term']
+    data['sqrt_non_qs_error'][ii] = metrics['sqrt_non_qs_error']
     data['iota'][ii] = metrics['iota']
     data['aspect_ratio'][ii] = metrics['aspect_ratio']
     data['success'][ii] = metrics['success']
     X_samples[ii, :] = xx
     # print("Configuration", ii, cond_local[0])
-    print(f"success={metrics['success']}, sqrt_qs_error={metrics['sqrt_qs_error']}, aspect_ratio={metrics['aspect_ratio']}, iota={metrics['iota']}, nfp={nfp}, helicity={helicity}")
+    print(f"success={metrics['success']}, sqrt_qs_error_boozer={metrics['sqrt_qs_error_boozer']}, aspect_ratio={metrics['aspect_ratio']}, iota={metrics['iota']}, nfp={nfp}, helicity={helicity}")
 
 
 # save data

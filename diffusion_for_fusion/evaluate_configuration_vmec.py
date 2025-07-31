@@ -61,25 +61,110 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
         iota = vmec.iota_edge()
 
         # compute QS-error
+        s = 1.0
         boozer = Boozer(vmec)
         qs = Quasisymmetry(boozer,
-                        1.0, # Radius to target
+                        s, # Radius to target
                         helicity_m=1,
                         helicity_n=helicity,
                         normalization='symmetric',
-                        weight='stellopt_ornl') # (M, N) you want in |B|
-        sqrt_qs_error = qs.J().item()
+                        weight='stellopt_ornl')
+        sqrt_qs_error_boozer = qs.J().item()
 
-        qs_error_2term = QuasisymmetryRatioResidual(vmec, surfaces=[1.0], helicity_m=1, helicity_n= helicity).total()
+        qs_error_2term = QuasisymmetryRatioResidual(vmec, surfaces=[s], helicity_m=1, helicity_n= helicity).total()
+        sqrt_qs_error_2term = np.sqrt(qs_error_2term)
+
+        sqrt_non_qs_error = BoozerNonQuasiSymmetricRatio(boozer, s=s, helicity=0, nphi=nphi, ntheta=ntheta)
     else:
         # fallback if VMEC fails
         iota = np.nan
-        sqrt_qs_error = np.nan
-        qs_error_2term = np.nan
+        sqrt_qs_error_boozer = np.nan
+        sqrt_qs_error_2term = np.nan
+        sqrt_non_qs_error = np.nan
 
-    metrics = {'sqrt_qs_error': sqrt_qs_error, 'qs_error_2term': qs_error_2term, 'iota': iota, 'aspect_ratio': aspect_ratio, 'success': success}
+    metrics = {'sqrt_qs_error_boozer': sqrt_qs_error_boozer,
+               'sqrt_qs_error_2term': sqrt_qs_error_2term, 
+               'sqrt_non_qs_error': sqrt_non_qs_error,
+               'iota': iota, 
+               'aspect_ratio': aspect_ratio,
+               'success': success}
 
     return metrics, vmec
+
+
+def BoozerNonQuasiSymmetricRatio(boozer, s=1.0, helicity=0, nphi=31, ntheta=31):
+    """Compute the NonQuasiSymmetricRatio from a Boozer object.
+
+    Args:
+        boozer (Boozer): Boozer object.
+        s (float): surface to evaluate the NonQuasiSymmetricRatio on.
+        helicity (int, optional): 0 or 1 to indicate QA or QH. Defaults to 0.
+        nphi (int, optional): number of phi quadrature points. Defaults to 31.
+        ntheta (int, optional): number of theta quadrature points. Defaults to 31.
+
+    Returns:
+        float: square root of non-quasisymmetric ratio metric
+    """
+    boozer.register([s])
+    boozer.run()
+
+    # get boozXform object
+    bx = boozer.bx
+
+    # discretize boozer angles
+    theta1d = np.linspace(0, 2 * np.pi, ntheta)
+    phi1d = np.linspace(0, 2 * np.pi / bx.nfp, nphi)
+    phi, theta = np.meshgrid(phi1d, theta1d, indexing='ij')
+
+    # index of flux surface
+    js = 0
+
+    # reconstruct |B| and sqrtg
+    modB = np.zeros(np.shape(phi))
+    sqrtg = np.zeros(np.shape(phi))
+    for jmn in range(len(bx.xm_b)):
+        m = bx.xm_b[jmn]
+        n = bx.xn_b[jmn]
+        angle = m * theta - n * phi
+        modB += bx.bmnc_b[jmn, js] * np.cos(angle)
+        sqrtg += bx.gmnc_b[jmn, js] * np.cos(angle)
+        if bx.asym:
+            modB += bx.bmns_b[jmn, js] * np.sin(angle)
+            sqrtg += bx.gmns_b[jmn, js] * np.sin(angle)
+
+    def make_QA_matrix(in_nphi, in_ntheta):
+        idx = np.arange(in_nphi)
+        jdx = np.arange(in_ntheta)
+        idx, jdx = np.meshgrid(idx, jdx, indexing='ij')
+        return idx, jdx
+
+    def make_QH_matrix(in_nphi, in_ntheta):
+        idx = np.arange(in_nphi)
+        jdx = np.arange(in_ntheta)
+        idx, jdx = np.meshgrid(idx, jdx, indexing='ij')
+        idx, jdx = np.mod(idx-jdx, in_nphi), np.mod(idx+jdx, in_ntheta)
+
+        idx = np.arange(in_nphi)
+        jdx = np.arange(in_ntheta)
+        idx, jdx = np.meshgrid(idx, jdx, indexing='ij')
+        idx, jdx = np.mod(idx-jdx, in_nphi), np.mod(idx+jdx, in_ntheta)
+        return idx, jdx
+    
+    if helicity == 1:
+        idx, jdx = make_QH_matrix(nphi, ntheta)
+    else:
+        idx, jdx = make_QA_matrix(nphi, ntheta)
+
+    # Andrew's non-QS ratio
+    dS = sqrtg[idx, jdx]
+    modB = modB[idx, jdx]
+    B_QS = np.mean(modB * dS, axis=0) / np.mean(dS, axis=0)
+    B_QS = B_QS[None, :]
+    B_nonQS = modB - B_QS
+    _J = np.mean(dS * B_nonQS**2) / np.mean(dS * B_QS**2)
+    _J = np.sqrt(_J)
+    return _J
+
 
 
 def test_evaluate_configuration():
@@ -98,8 +183,8 @@ def test_evaluate_configuration():
     # which data point
     # idx_data = 7
     # idx_data = 35
-    idx_data = 1203
-    # idx_data = 368248
+    # idx_data = 1203
+    idx_data = 368248
     # idx_data = 212450
     # idx_data = 110825
     # idx_data = 239324
