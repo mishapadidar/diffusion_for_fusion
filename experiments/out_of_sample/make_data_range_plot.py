@@ -9,8 +9,10 @@ plt.rcParams.update({'font.size': 12})
 colors = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", 
           "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 colors = ['lightcoral', 'goldenrod', 'mediumseagreen','orange']
-markers = ['o', 's', 'x', '^', '*', 'p', 'D', 'v', '>', '<',  'h']
-
+markers = ['s','o',  'x', '^', '*', 'p', 'D', 'v', '>', '<',  'h']
+outdir = "./viz/"
+if not os.path.exists(outdir):
+    os.makedirs(outdir, exist_ok=True)
 
 """
 Plot the distribution of data in QUASR, and show where we will perform out of sample evaluation.
@@ -26,21 +28,19 @@ print(df.columns)
 df['mean_iota'] = np.round(df['mean_iota'], 1)
 df['aspect_ratio'] = np.round(df['aspect_ratio'], 0)
 
-# give each nfp helicity pair an ID
-df['nfp_helicity'] = "(" + df['nfp'].astype(str) + ',' + df['helicity'].astype(str) + ")"
-
-# # drop 'nfp_helicity' if less than 10000 samples
-# df_counts = df.groupby('nfp_helicity').size().reset_index(name='counts')
-# df_counts = df_counts[df_counts['counts'] >= 10000]
-# df = df[df['nfp_helicity'].isin(df_counts['nfp_helicity'])]
-
 # get unique (iota, aspect, nfp, helicity) combinations
-df_unique = df[['mean_iota', 'aspect_ratio', 'nfp', 'helicity']].drop_duplicates()
+idx = df[['mean_iota', 'aspect_ratio']].duplicated()
+df_unique = df.loc[~idx, ['mean_iota', 'aspect_ratio', 'nfp', 'helicity']]#.drop_duplicates()
 
-markersize=25
+
+markersize=30
 alpha = 0.7
 
-fig, ax = plt.subplots(figsize=(8, 6))
+fig, ax = plt.subplots(figsize=(12, 6))
+ax.grid(color='lightgray', linestyle='--', linewidth=0.5, zorder=0)
+
+""" Plot the dataset """
+
 for helicity in df_unique['helicity'].unique():
     idx = (df_unique.helicity == helicity)
     mean_iota = df_unique['mean_iota'][idx]
@@ -49,15 +49,56 @@ for helicity in df_unique['helicity'].unique():
         qs_label = 'QH'
     else:
         qs_label = 'QA'
-    plt.scatter(mean_iota, aspect_ratio, c=colors[helicity], s=markersize, marker=markers[helicity], alpha=alpha, label='%s'%(qs_label))
+    ax.scatter(mean_iota, aspect_ratio, c=colors[helicity], s=markersize, marker=markers[helicity], alpha=alpha, label='%s'%(qs_label), zorder=5)
+
+
+
+""" Plot the out-of-sample devices """
 
 # scatter some misc data points
-plt.scatter([0.36], [4.5], color=colors[2], s=int(2*markersize), marker=markers[4], alpha=1.0, label=r'$n_{\text{fp}}=2$ QA')
-plt.scatter([0.5], [9.0], color=colors[2], s=int(2*markersize), marker=markers[2], alpha=1.0, label=r'$n_{\text{fp}}=3$ QA')
-plt.scatter([1.4], [11.0], color=colors[2], s=int(2*markersize), marker=markers[5], alpha=1.0, label=r'$n_{\text{fp}}=4$ QH')
-plt.scatter([2.5], [17.0], color=colors[2], s=int(2*markersize), marker=markers[3], alpha=1.0, label=r'$n_{\text{fp}}=5$ QH')
+ax.scatter([0.36], [4.5], color=colors[2], s=int(2*markersize), marker=markers[4], alpha=1.0, label=r'$n_{\text{fp}}=2$ QA', zorder=5)
+ax.scatter([0.5], [9.0], color=colors[2], s=int(2*markersize), marker=markers[2], alpha=1.0, label=r'$n_{\text{fp}}=3$ QA', zorder=5)
+ax.scatter([1.4], [11.0], color=colors[2], s=int(2*markersize), marker=markers[5], alpha=1.0, label=r'$n_{\text{fp}}=4$ QH', zorder=5)
+ax.scatter([2.5], [17.0], color=colors[2], s=int(2*markersize), marker=markers[3], alpha=1.0, label=r'$n_{\text{fp}}=5$ QH', zorder=5)
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
 
-ax.set_xlabel('Mean Rotational Transform')
-ax.set_ylabel('Aspect Ratio')
+
+""" 
+Plot an image of a device
+serial0000952 (iota = 0.1, aspect = 20, nfp2, QA)
+https://quasr.flatironinstitute.org/model/0000952
+"""
+img = plt.imread("./viz/serial0000952.png")
+device_iota = 0.1
+device_aspect = 20
+x_left = -0.8
+x_right = 0.2
+y_bottom = 21
+y_top = 29
+ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
+# draw an arrow 
+x_start_arrow = -0.1
+y_start_arrow = 22.3
+x_end_arrow = device_iota - 0.04
+y_end_arrow = device_aspect + 0.4
+
+# ax.arrow(x_center, y_center, 
+#          dx_arrow, dy_arrow, 
+#          head_width=0.03, head_length=0.15, fc='black', ec='black', zorder=10)
+ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
+            xy=(x_end_arrow, y_end_arrow),
+            arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4))
+
+# prevent the axis from zooming in on the image
+ax.set_xlim(xlim)
+ax.set_ylim(ylim)
+ax.set_aspect('auto')
+
+
+
+ax.set_xlabel(r'Mean Rotational Transform $\bar{\iota}$')
+ax.set_ylabel('Aspect Ratio $A$')
 plt.legend(loc='upper right', fontsize=10, framealpha=1.0)
+plt.savefig(outdir + 'quasr_data_range.pdf', bbox_inches='tight', format='pdf')
 plt.show()
