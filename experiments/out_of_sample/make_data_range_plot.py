@@ -34,7 +34,7 @@ df_unique = df.loc[~idx, ['mean_iota', 'aspect_ratio', 'nfp', 'helicity']]#.drop
 
 
 markersize=30
-alpha = 0.7
+alpha = 1.0
 
 fig, ax = plt.subplots(figsize=(12, 6))
 ax.grid(color='lightgray', linestyle='--', linewidth=0.5, zorder=0)
@@ -77,24 +77,91 @@ x_right = 0.2
 y_bottom = 21
 y_top = 29
 ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
+
 # draw an arrow 
 x_start_arrow = -0.1
 y_start_arrow = 22.3
 x_end_arrow = device_iota - 0.04
 y_end_arrow = device_aspect + 0.4
-
-# ax.arrow(x_center, y_center, 
-#          dx_arrow, dy_arrow, 
-#          head_width=0.03, head_length=0.15, fc='black', ec='black', zorder=10)
 ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
             xy=(x_end_arrow, y_end_arrow),
             arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4))
+
+""" 
+Plot an image of a device
+serial2593103 (iota = 3, aspect = 112.93 QH)
+# https://quasr.flatironinstitute.org/model/2593103
+"""
+img = plt.imread("./viz/serial2593103.png")
+device_iota = 3.0
+device_aspect = 11.93
+x_left = 2.5
+x_right = 3.9
+y_bottom = 13
+y_top = 21
+ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
+
+# # draw an arrow 
+# x_start_arrow = -0.1
+# y_start_arrow = 22.3
+# x_end_arrow = device_iota - 0.04
+# y_end_arrow = device_aspect + 0.4
+# ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
+#             xy=(x_end_arrow, y_end_arrow),
+#             arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4))   
+
+""" 
+Plot an image of a device
+serial1328281 (iota = 1.2, aspect = 8 QH)
+# https://quasr.flatironinstitute.org/model/1328281
+"""
+img = plt.imread("./viz/serial1328281.png")
+device_iota = 1.2
+device_aspect = 8.0
+x_left = 0.7
+x_right = 1.9
+y_bottom = 5
+y_top = -2
+ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
+
+# # draw an arrow 
+# x_start_arrow = -0.1
+# y_start_arrow = 22.3
+# x_end_arrow = device_iota - 0.04
+# y_end_arrow = device_aspect + 0.4
+# ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
+#             xy=(x_end_arrow, y_end_arrow),
+#             arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4))   
+
+""" 
+Plot an image of a device
+serial0040380 (iota = 0.1, aspect = 4 QA)
+# https://quasr.flatironinstitute.org/model/0040380
+"""
+img = plt.imread("./viz/serial0040380.png")
+device_iota = 0.1
+device_aspect = 4.0
+x_left = -0.8
+x_right = 0.2
+y_bottom = 9
+y_top = 1
+ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
+
+# # draw an arrow 
+# x_start_arrow = -0.1
+# y_start_arrow = 22.3
+# x_end_arrow = device_iota - 0.04
+# y_end_arrow = device_aspect + 0.4
+# ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
+#             xy=(x_end_arrow, y_end_arrow),
+#             arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4))   
+
+
 
 # prevent the axis from zooming in on the image
 ax.set_xlim(xlim)
 ax.set_ylim(ylim)
 ax.set_aspect('auto')
-
 
 
 ax.set_xlabel(r'Mean Rotational Transform $\bar{\iota}$')
