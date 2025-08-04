@@ -5,7 +5,7 @@ import os
 
 plt.rc('font', family='serif')
 # plt.rc('text.latex', preamble=r'\\usepackage{amsmath,bm}')
-plt.rcParams.update({'font.size': 12})
+plt.rcParams.update({'font.size': 13})
 colors = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", 
           "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 colors = ['lightcoral', 'goldenrod', 'mediumseagreen','orange']
@@ -36,7 +36,7 @@ df_unique = df.loc[~idx, ['mean_iota', 'aspect_ratio', 'nfp', 'helicity']]#.drop
 markersize=30
 alpha = 1.0
 
-fig, ax = plt.subplots(figsize=(12, 6))
+fig, (ax, ax2) = plt.subplots(figsize=(12, 6), ncols=2, gridspec_kw={'width_ratios': [3, 1]})
 ax.grid(color='lightgray', linestyle='--', linewidth=0.5, zorder=0)
 
 """ Plot the dataset """
@@ -69,37 +69,39 @@ Plot an image of a device
 serial0000952 (iota = 0.1, aspect = 20, nfp2, QA)
 https://quasr.flatironinstitute.org/model/0000952
 """
+# img = plt.imread("./viz/serial0000952.png")
+# device_iota = 0.1
+# device_aspect = 20
+# x_left = -0.8
+# x_right = 0.2
+# y_bottom = 21
+# y_top = 29
+# ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
+
+# top left
 img = plt.imread("./viz/serial0000952.png")
 device_iota = 0.1
 device_aspect = 20
-x_left = -0.8
-x_right = 0.2
-y_bottom = 21
-y_top = 29
-ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
+x_left = -0.3
+x_right = 0.5
+y_bottom = 0.5
+y_top = 1.0
+ax2.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
 
-# draw an arrow 
-x_start_arrow = -0.1
-y_start_arrow = 22.3
-x_end_arrow = device_iota - 0.04
-y_end_arrow = device_aspect + 0.4
+# draw a letter on the right plot
+ax2.text(-0.3, 0.95, "A", transform=ax2.transAxes, fontsize=14,
+        verticalalignment='top', weight='bold')
+
+# draw a letter on the left plot
+x_start_arrow = device_iota - 0.1
+y_start_arrow = device_aspect + 1
+x_end_arrow = device_iota -0.03
+y_end_arrow = device_aspect +0.3
 ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
             xy=(x_end_arrow, y_end_arrow),
-            arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4))
-
-""" 
-Plot an image of a device
-serial2593103 (iota = 3, aspect = 112.93 QH)
-# https://quasr.flatironinstitute.org/model/2593103
-"""
-img = plt.imread("./viz/serial2593103.png")
-device_iota = 3.0
-device_aspect = 11.93
-x_left = 2.5
-x_right = 3.9
-y_bottom = 13
-y_top = 21
-ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
+            arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4), zorder=100)  
+ax.text(x_start_arrow - 0.1, y_start_arrow + 1, "A", fontsize=14,
+        verticalalignment='top', weight='bold', zorder=150)
 
 # # draw an arrow 
 # x_start_arrow = -0.1
@@ -108,55 +110,159 @@ ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='au
 # y_end_arrow = device_aspect + 0.4
 # ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
 #             xy=(x_end_arrow, y_end_arrow),
-#             arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4))   
+#             arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4))
+
+""" 
+Plot an image of a device
+serial2593103 (iota = 3, aspect = 11.93 QH)
+# https://quasr.flatironinstitute.org/model/2593103
+"""
+# img = plt.imread("./viz/serial2593103.png")
+# device_iota = 3.0
+# device_aspect = 11.93
+# x_left = 2.5
+# x_right = 3.9
+# y_bottom = 13
+# y_top = 21
+# ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
+
+# bottom right
+img = plt.imread("./viz/serial2593103.png")
+device_iota = 3.0
+device_aspect = 11.93
+x_left = 0.4
+x_right = 1.7
+# y_bottom = 0.5
+# y_top = 1.0
+y_bottom = -0.02
+y_top = 0.52
+ax2.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
+
+# draw letter on the right plot
+ax2.text(0.55, 0.45, "D", transform=ax2.transAxes, fontsize=14,
+        verticalalignment='top', weight='bold')
+
+# draw a letter on the left plot
+x_start_arrow = device_iota + 0.1
+y_start_arrow = device_aspect + 1
+x_end_arrow = device_iota - 0.04
+y_end_arrow = device_aspect + 0.4
+ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
+            xy=(x_end_arrow, y_end_arrow),
+            arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4))  
+ax.text(x_start_arrow + 0.03, y_start_arrow + 0.7, "D", fontsize=14,
+        verticalalignment='top', weight='bold', zorder=150)
+
+# # # draw an arrow 
+# # x_start_arrow = -0.1
+# # y_start_arrow = 22.3
+# # x_end_arrow = device_iota - 0.04
+# # y_end_arrow = device_aspect + 0.4
+# # ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
+# #             xy=(x_end_arrow, y_end_arrow),
+# #             arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4))   
 
 """ 
 Plot an image of a device
 serial1328281 (iota = 1.2, aspect = 8 QH)
 # https://quasr.flatironinstitute.org/model/1328281
 """
+# img = plt.imread("./viz/serial1328281.png")
+# device_iota = 1.2
+# device_aspect = 8.0
+# x_left = 0.7
+# x_right = 1.9
+# y_bottom = 5
+# y_top = -2
+# ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
+
+# bottom left
 img = plt.imread("./viz/serial1328281.png")
 device_iota = 1.2
 device_aspect = 8.0
-x_left = 0.7
-x_right = 1.9
-y_bottom = 5
-y_top = -2
-ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
+x_left = -0.5
+x_right = 0.7
+y_bottom = -0.0
+y_top = 0.4
+ax2.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
 
-# # draw an arrow 
-# x_start_arrow = -0.1
-# y_start_arrow = 22.3
-# x_end_arrow = device_iota - 0.04
-# y_end_arrow = device_aspect + 0.4
-# ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
-#             xy=(x_end_arrow, y_end_arrow),
-#             arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4))   
+# place a text box in upper left in axes coords
+ax2.text(-0.3, 0.45, "C", transform=ax2.transAxes, fontsize=14,
+        verticalalignment='top', weight='bold')
+
+# draw a letter on the left plot
+x_start_arrow = 1.3
+y_start_arrow = 4.9
+x_end_arrow = device_iota + 0.01
+y_end_arrow = device_aspect - 0.35
+ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
+            xy=(x_end_arrow, y_end_arrow),
+            arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4), zorder=100)  
+ax.text(x_start_arrow - 0.04, y_start_arrow - 0.1, "C", fontsize=14,
+        verticalalignment='top', weight='bold', zorder=150)
+
+# # # draw an arrow 
+# # x_start_arrow = -0.1
+# # y_start_arrow = 22.3
+# # x_end_arrow = device_iota - 0.04
+# # y_end_arrow = device_aspect + 0.4
+# # ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
+# #             xy=(x_end_arrow, y_end_arrow),
+# #             arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4))   
 
 """ 
 Plot an image of a device
 serial0040380 (iota = 0.1, aspect = 4 QA)
 # https://quasr.flatironinstitute.org/model/0040380
 """
+# img = plt.imread("./viz/serial0040380.png")
+# device_iota = 0.1
+# device_aspect = 4.0
+# x_left = -0.8
+# x_right = 0.2
+# y_bottom = 9
+# y_top = 1
+# ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
+
+# top right
 img = plt.imread("./viz/serial0040380.png")
 device_iota = 0.1
 device_aspect = 4.0
-x_left = -0.8
-x_right = 0.2
-y_bottom = 9
-y_top = 1
-ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
+x_left = 0.5
+x_right = 1.5
+# y_bottom = -0.01
+# y_top = 0.4
+y_bottom = 0.55
+y_top = 0.9
+ax2.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
 
-# # draw an arrow 
-# x_start_arrow = -0.1
-# y_start_arrow = 22.3
-# x_end_arrow = device_iota - 0.04
-# y_end_arrow = device_aspect + 0.4
-# ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
-#             xy=(x_end_arrow, y_end_arrow),
-#             arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4))   
+# place a text box in upper left in axes coords
+ax2.text(0.55, 0.95, "B", transform=ax2.transAxes, fontsize=14,
+        verticalalignment='top', weight='bold')
 
+# draw a letter on the left plot
+x_start_arrow = device_iota - 0.1
+y_start_arrow = device_aspect + 1
+x_end_arrow = device_iota -0.03
+y_end_arrow = device_aspect +0.3
+ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
+            xy=(x_end_arrow, y_end_arrow),
+            arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4), zorder=100)  
+ax.text(x_start_arrow - 0.1, y_start_arrow + 1, "B", fontsize=14,
+        verticalalignment='top', weight='bold', zorder=150)
 
+# # # draw an arrow 
+# # x_start_arrow = -0.1
+# # y_start_arrow = 22.3
+# # x_end_arrow = device_iota - 0.04
+# # y_end_arrow = device_aspect + 0.4
+# # ax.annotate("", xytext=(x_start_arrow, y_start_arrow),
+# #             xy=(x_end_arrow, y_end_arrow),
+# #             arrowprops=dict(facecolor='black', width=0.1, headwidth=4, headlength=4))   
+
+ax2.set_xlim([0, 1])
+ax2.set_ylim([0, 1])
+ax2.axis('off')
 
 # prevent the axis from zooming in on the image
 ax.set_xlim(xlim)
@@ -165,7 +271,7 @@ ax.set_aspect('auto')
 
 
 ax.set_xlabel(r'Mean Rotational Transform $\bar{\iota}$')
-ax.set_ylabel('Aspect Ratio $A$')
-plt.legend(loc='upper right', fontsize=10, framealpha=1.0)
+ax.set_ylabel('Aspect Ratio')
+ax.legend(loc='upper right', fontsize=10, framealpha=1.0)
 plt.savefig(outdir + 'quasr_data_range.pdf', bbox_inches='tight', format='pdf')
 plt.show()
