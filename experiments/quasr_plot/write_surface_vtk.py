@@ -1,5 +1,5 @@
 import numpy as np
-from simsopt.geo import SurfaceXYZTensorFourier
+from simsopt.geo import SurfaceXYZTensorFourier, curves_to_vtk
 from simsopt.field import coils_via_symmetries, BiotSavart
 from simsopt._core import load
 import pandas as pd
@@ -49,3 +49,7 @@ for device_tag in filelist:
     surface_plot.to_vtk("./viz/" + device_tag, extra_data = {'modB': modB.T.flatten()})
     print(f"Wrote vtk file for {device_tag} to ./viz/{device_tag}.vtk")
     print("Aspect Ratio:", surface_plot.aspect_ratio(), "nfp", surface_plot.nfp)
+
+    # write a coil vtk
+    curves = [c.curve for c in coils]
+    curves_to_vtk(curves, "./viz/" + device_tag + "_coils")
