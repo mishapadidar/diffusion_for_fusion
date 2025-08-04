@@ -25,16 +25,19 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
         sheet_current (SheetCurrent): SheetCurrent object with the fitted current.
     """
 
-    # build the surface
+    # build the surface 
     nphi = max(2*ntor+1, nphi)
     ntheta = max(2*mpol+1, ntheta)
+    # surf = SurfaceXYZTensorFourier(
+    #     mpol=mpol, ntor=ntor, stellsym=stellsym, nfp=nfp,
+    #     quadpoints_phi=np.linspace(0, 1 / nfp, nphi, endpoint=False),
+    #     quadpoints_theta=np.linspace(0, 1, ntheta, endpoint=False))
     surf = SurfaceXYZTensorFourier(
-        mpol=mpol, ntor=ntor, stellsym=stellsym, nfp=nfp,
-        quadpoints_phi=np.linspace(0, 1 / nfp, nphi, endpoint=False),
-        quadpoints_theta=np.linspace(0, 1, ntheta, endpoint=False))
+        mpol=mpol, ntor=ntor, stellsym=stellsym, nfp=nfp)
     surf.x = x
 
-    vmec = Vmec(vmec_input, verbose=False, keep_all_files=False, range_surface='field period')
+    # vmec = Vmec(vmec_input, verbose=False, keep_all_files=False, range_surface='field period')
+    vmec = Vmec(vmec_input, verbose=False, keep_all_files=False)
     # change nfp
     vmec.indata.nfp = nfp
     # run
@@ -63,19 +66,27 @@ def evaluate_configuration(x, nfp, stellsym=True, mpol=10, ntor=10, helicity=0, 
 
         # compute QS-error
         s = 1.0
-        boozer = Boozer(vmec)
-        qs = Quasisymmetry(boozer,
-                        s, # Radius to target
-                        helicity_m=1,
-                        helicity_n=helicity,
-                        normalization='symmetric',
-                        weight='stellopt_ornl')
-        sqrt_qs_error_boozer = qs.J().item()
+        try:
+            boozer = Boozer(vmec)
+            qs = Quasisymmetry(boozer,
+                            np.linspace(0.1,1,10,endpoint=False), # Radius to target
+                            helicity_m=1,
+                            helicity_n=helicity,
+                            normalization='symmetric',
+                            weight='stellopt_ornl')
+            sqrt_qs_error_boozer = np.mean(qs.J())
+        except:
+            sqrt_qs_error_boozer = np.nan
 
-        qs_error_2term = QuasisymmetryRatioResidual(vmec, surfaces=[s], helicity_m=1, helicity_n= helicity).total()
-        sqrt_qs_error_2term = np.sqrt(qs_error_2term)
+        qs_2term = QuasisymmetryRatioResidual(vmec, surfaces=np.linspace(0.1,1,10,endpoint=False), helicity_m=1, helicity_n= helicity)
+        res = qs_2term.compute()
+        sqrt_qs_error_2term = np.sqrt(res.total)
+        # mean_iota = np.mean(res.iota)
 
-        sqrt_non_qs_error = BoozerNonQuasiSymmetricRatio(boozer, s=s, helicity=0, nphi=nphi, ntheta=ntheta)
+        try:
+            sqrt_non_qs_error = BoozerNonQuasiSymmetricRatio(boozer, s=s, helicity=0, nphi=nphi, ntheta=ntheta)
+        except:
+            sqrt_non_qs_error = np.nan
     else:
         # fallback if VMEC fails
         iota_edge = np.nan
