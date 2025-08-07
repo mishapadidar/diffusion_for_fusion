@@ -11,9 +11,10 @@ You will have to manually plot these in Paraview.
 """
 filelist = ["serial0000952", # https://quasr.flatironinstitute.org/model/0000952
             # "serial2557132", # https://quasr.flatironinstitute.org/model/2557132
-            "serial2593103", # https://quasr.flatironinstitute.org/model/2593103
+            # "serial2593103", # https://quasr.flatironinstitute.org/model/2593103
             "serial0040380", # https://quasr.flatironinstitute.org/model/0040380
             "serial1328281", # https://quasr.flatironinstitute.org/model/1328281
+            "serial2022065" # https://quasr.flatironinstitute.org/model/2022065
             ]
 
 # load quasr data

@@ -8,7 +8,7 @@ plt.rc('font', family='serif')
 plt.rcParams.update({'font.size': 13})
 colors = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", 
           "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
-colors = ['lightcoral', 'goldenrod', 'mediumseagreen','orange']
+colors = ['lightcoral', 'goldenrod', "cornflowerblue", "mediumorchid", 'mediumseagreen','orange']
 markers = ['s','o',  'x', '^', '*', 'p', 'D', 'v', '>', '<',  'h']
 outdir = "./viz/"
 if not os.path.exists(outdir):
@@ -116,6 +116,9 @@ ax.text(x_start_arrow - 0.1, y_start_arrow + 1, "A", fontsize=14,
 Plot an image of a device
 serial2593103 (iota = 3, aspect = 11.93 QH)
 # https://quasr.flatironinstitute.org/model/2593103
+
+serial2022065 (iota = 2.9, aspect = 11.99 QH)
+# https://quasr.flatironinstitute.org/model/2022065
 """
 # img = plt.imread("./viz/serial2593103.png")
 # device_iota = 3.0
@@ -127,15 +130,15 @@ serial2593103 (iota = 3, aspect = 11.93 QH)
 # ax.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
 
 # bottom right
-img = plt.imread("./viz/serial2593103.png")
-device_iota = 3.0
-device_aspect = 11.93
+img = plt.imread("./viz/serial2022065.png")
+device_iota = 2.9
+device_aspect = 11.99
 x_left = 0.4
 x_right = 1.7
 # y_bottom = 0.5
 # y_top = 1.0
 y_bottom = -0.02
-y_top = 0.52
+y_top = 0.45
 ax2.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
 
 # draw letter on the right plot
@@ -181,9 +184,9 @@ img = plt.imread("./viz/serial1328281.png")
 device_iota = 1.2
 device_aspect = 8.0
 x_left = -0.5
-x_right = 0.7
+x_right = 0.8
 y_bottom = -0.0
-y_top = 0.4
+y_top = 0.45
 ax2.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
 
 # place a text box in upper left in axes coords
