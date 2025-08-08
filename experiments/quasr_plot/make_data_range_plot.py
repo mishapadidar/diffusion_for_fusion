@@ -114,8 +114,6 @@ ax.text(x_start_arrow - 0.1, y_start_arrow + 1, "A", fontsize=14,
 
 """ 
 Plot an image of a device
-serial2593103 (iota = 3, aspect = 11.93 QH)
-# https://quasr.flatironinstitute.org/model/2593103
 
 serial2022065 (iota = 2.9, aspect = 11.99 QH)
 # https://quasr.flatironinstitute.org/model/2022065
