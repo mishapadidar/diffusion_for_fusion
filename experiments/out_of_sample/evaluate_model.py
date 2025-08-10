@@ -24,20 +24,23 @@ Generate data out-of-sample Using one of the following conditions:
 """
 
 condition_options = [
-    [0.36, 4.5, 2, 1], # QA, nfp=2
-    [0.5, 9.0, 3, 1],  # QA, nfp=3
+    [0.36, 4.5, 2, 0], # QA, nfp=2
+    [0.36, 4.5, 2, 1], # QH, nfp=2
+    [0.5, 9.0, 3, 0],  # QA, nfp=3
+    [0.5, 9.0, 3, 1],  # QH, nfp=3
     [1.4, 11.0, 4, 1],  # QH, nfp=4
-    [2.5, 17.0, 5, 1] # QH, nfp=5
+    [2.5, 17.0, 5, 1], # QH, nfp=5
+    [2.5, 17.0, 6, 1] # QH, nfp=6
     ]
 
-# choose one of the conditions
-idx_condition = 1  # 0, 1, 2, or 3
+# choose one of the conditions from list
+idx_condition = 4
 
 # conditioned on (iota, aspect, nfp, helicity); trained on PCA-50 w/ big model
 indir = "../conditional_diffusion/output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522/"
 
 # number of samples
-n_samples = 20
+n_samples = 35
 
 """ Load up the model"""
 

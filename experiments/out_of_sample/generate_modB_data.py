@@ -32,34 +32,33 @@ Prior to running this script, run evaluate_model.py to generate the diffusion sa
 """
 
 
-# load model evaluations
-tag_list = ["iota_0.36_nfp_2_helicity_1_aspect_ratio_4.5",
-            "iota_0.5_nfp_3_helicity_1_aspect_ratio_9.0",
-            ]
+
 
 ntheta = 256
 nphi = 257
 
 
-df_list = [pd.read_csv("./output/diffusion_metrics_" + tag + ".csv") for tag in tag_list]
-X_list = [np.load("./output/diffusion_samples_" + tag + ".npy") for tag in tag_list]
+# load model evaluations
+df_filelist = glob.glob("./output/diffusion_metrics_*.csv")
+X_filelist = glob.glob("./output/diffusion_samples_*.npy")
+df_filelist.sort()
+X_filelist.sort()
+df_list = [pd.read_csv(ff) for ff in df_filelist]
+X_list = [np.load(ff) for ff in X_filelist]
 
 
 config_list = []
 for ii, df in enumerate(df_list):
     print("")
     # find index of configuration with median qs_error
-    median_qs_error = df['sqrt_non_qs_error'].min()
+    # median_qs_error = df['sqrt_non_qs_error'].min()
     # idx_best = df['sqrt_non_qs_error'].sub(median_qs_error).abs().idxmin()
     idx_best = df['sqrt_non_qs_error'].idxmin()
     nfp = round(df.iloc[idx_best]['nfp'])
     helicity = round(df.iloc[idx_best]['helicity'])
-    print(np.shape(X_list[ii]))
-    print(len(df))
     xx = X_list[ii][idx_best]
 
-    print(idx_best, median_qs_error)
-    print("nfp", nfp, "helicity", helicity)
+    print("selected configuration", ii, "with qs error", df['sqrt_non_qs_error'].min(), "nfp", nfp, "helicity", helicity)
 
 
     # evaluate the configuration
@@ -93,8 +92,13 @@ for ii, df in enumerate(df_list):
         'theta': theta,
         'phi': phi,
         'nfp': bx.nfp,
+        'helicity': helicity,
+        'aspect_ratio': metrics['aspect_ratio'],
+        'mean_iota': metrics['mean_iota'],
+        'sqrt_non_qs_error': metrics['sqrt_non_qs_error'],
     }
-    outfilename = outdir + f'modB_data_{tag_list[ii]}.pickle'
+    tag = df_filelist[ii].split("metrics_")[-1].split(".csv")[0]
+    outfilename = outdir + f'modB_data_{tag}.pickle'
     with open(outfilename, 'wb') as f:
         pickle.dump(data, f)
     print("Saved modB data to", outfilename)
@@ -111,7 +115,7 @@ for ii, df in enumerate(df_list):
     data = vmec_compute_geometry(vmec, s = 1.0, theta=2*np.pi*quadpoints_theta, phi=2*np.pi*quadpoints_phi)
     modB_surface = data.modB[0].T # (nphi, ntheta)
     pointData = {"modB": modB_surface[:, :, None]}
-    outfilename = outdir + f'surface_{tag_list[ii]}'
+    outfilename = outdir + f'surface_{tag}'
     surface_plot.to_vtk(outfilename, extra_data=pointData)
     print("Saved vtk to", outfilename)
 
