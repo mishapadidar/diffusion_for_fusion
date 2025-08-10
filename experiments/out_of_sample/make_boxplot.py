@@ -27,7 +27,8 @@ Show that diffusion model faithfully reproduces condition values (aspect ratio, 
 # load model evaluations
 filelist = ["./output/diffusion_metrics_iota_0.36_nfp_2_helicity_1_aspect_ratio_4.5.csv",
             "./output/diffusion_metrics_iota_0.5_nfp_3_helicity_1_aspect_ratio_9.0.csv",
-            "./output/diffusion_metrics_iota_1.4_nfp_4_helicity_1_aspect_ratio_11.0.csv"]
+            "./output/diffusion_metrics_iota_1.4_nfp_4_helicity_1_aspect_ratio_11.0.csv",
+            "./output/diffusion_metrics_iota_2.5_nfp_5_helicity_1_aspect_ratio_17.0.csv"]
 
 df_list = [pd.read_csv(ff) for ff in filelist]
 

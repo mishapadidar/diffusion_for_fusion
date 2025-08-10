@@ -31,7 +31,7 @@ condition_options = [
     ]
 
 # choose one of the conditions
-idx_condition = 2  # 0, 1, 2, or 3
+idx_condition = 1  # 0, 1, 2, or 3
 
 # conditioned on (iota, aspect, nfp, helicity); trained on PCA-50 w/ big model
 indir = "../conditional_diffusion/output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522/"
@@ -130,7 +130,7 @@ for ii, xx in enumerate(X_raw):
     data['mean_iota'][ii] = metrics['mean_iota']
     data['aspect_ratio'][ii] = metrics['aspect_ratio']
     data['success'][ii] = metrics['success']
-    print(f"success={metrics['success']}, sqrt_qs_error_boozer={metrics['sqrt_qs_error_boozer']}, aspect_ratio={metrics['aspect_ratio']}, mean_iota={metrics['mean_iota']}")
+    print(f"success={metrics['success']}, sqrt_non_qs_error={metrics['sqrt_non_qs_error']}, aspect_ratio={metrics['aspect_ratio']}, mean_iota={metrics['mean_iota']}")
 
 
 # save data
@@ -139,11 +139,12 @@ if not os.path.exists(outdir):
     os.makedirs(outdir, exist_ok=True)
 # save samples
 outfilename = outdir + f'diffusion_samples_iota_{iota_condition}_nfp_{nfp_condition}_helicity_{helicity_condition}_aspect_ratio_{aspect_ratio_condition}.npy'
-if os.path.exists(outfilename + '.npy'):
-    existing_samples = np.load(outfilename + '.npy')
+if os.path.exists(outfilename):
+    existing_samples = np.load(outfilename)
     X_samples = np.concatenate([existing_samples, X_raw], axis=0)
 else:
     X_samples = X_raw
+print(len(X_samples))
 np.save(outfilename, X_samples)
 print(f"Samples saved to {outfilename}")
 
