@@ -86,14 +86,13 @@ for ii, df in enumerate(df_list):
                         medianprops=dict(linewidth=2, color='black'),
                         boxprops=dict(facecolor=colors[ii], color='black'),
                         widths=width, positions=[left_pos_qs+width*ii],
-                        tick_labels=[""], 
+                        tick_labels=[labels[ii]], 
                         label=labels[ii])
 
+ax1.axhline(1, color='black', linestyle='--', linewidth=2)
+ax1.set_xticks(ax1.get_xticks() -width/2, ax1.get_xticklabels(),rotation=60)
 ax1.set_ylabel('$J_{QS}$  [%]')
 ax1.grid(color='lightgray', linestyle='--', linewidth=0.5)
-ax1.legend(loc='lower right', fontsize=10, framealpha=1.0)
-# xtick = [left_pos_qs+3*width*ii for ii in range(len(nfp_list)+1)]
-# ax1.set_xticks(xtick_pos,labels=xtick_label, rotation=60)
 ax1.set_yscale('log')
 ax1.set_yticks([0.1, 1, 10],labels=['0.1', '1', '10'])
 ax1.set_title("Quasisymmetry Error", fontsize=11)
@@ -110,9 +109,10 @@ for ii, df in enumerate(df_list):
                         medianprops=dict(linewidth=2, color='black'),
                         boxprops=dict(facecolor=colors[ii], color='black'),
                         widths=width, positions=[left_pos_qs+width*ii],
-                        tick_labels=[""], 
+                        tick_labels=[labels[ii]], 
                         label=labels[ii])
 
+ax2.set_xticks(ax2.get_xticks(), ax2.get_xticklabels(),rotation=60)
 ax2.set_ylabel('Error [%]')
 ax2.axhline(0.0, color='black', linestyle='--', linewidth=2)
 # ax2.legend(loc='upper right')
@@ -135,11 +135,10 @@ for ii, df in enumerate(df_list):
                         medianprops=dict(linewidth=2, color='black'),
                         boxprops=dict(facecolor=colors[ii], color='black'),
                         widths=width, positions=[left_pos_qs+width*ii],
-                        tick_labels=[""], 
+                        tick_labels=[labels[ii]], 
                         label=labels[ii])
 
-# ax3.set_xticks(ax3.get_xticks(), ax3.get_xticklabels(),rotation=60)
-
+ax3.set_xticks(ax3.get_xticks(), ax3.get_xticklabels(),rotation=60)
 ax3.set_ylim(-0.03, 0.25)
 ax3.set_ylabel('Error')
 ax3.axhline(0.0, color='black', linestyle='--', linewidth=2)
