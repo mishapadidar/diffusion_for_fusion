@@ -10,7 +10,8 @@ plt.rcParams.update({'font.size': 12})
 colors = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", 
           "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 # colors = ['lightcoral', 'goldenrod', 'mediumseagreen','orange', "lightskyblue", "plum"]
-colors = ['goldenrod', 'mediumseagreen','orange', "lightskyblue", "plum"]
+colors = ['goldenrod', 'mediumseagreen','orange', "lightskyblue", "plum", "teal", "indianred", "darkkhaki"]
+
 
 outdir = "./viz/"
 if not os.path.exists(outdir):
@@ -25,10 +26,8 @@ Show that diffusion model faithfully reproduces condition values (aspect ratio, 
 
 
 # load model evaluations
-filelist = ["./output/diffusion_metrics_iota_0.36_nfp_2_helicity_1_aspect_ratio_4.5.csv",
-            "./output/diffusion_metrics_iota_0.5_nfp_3_helicity_1_aspect_ratio_9.0.csv",
-            "./output/diffusion_metrics_iota_1.4_nfp_4_helicity_1_aspect_ratio_11.0.csv",
-            "./output/diffusion_metrics_iota_2.5_nfp_5_helicity_1_aspect_ratio_17.0.csv"]
+filelist = glob.glob("./output/diffusion_metrics_*.csv")
+filelist.sort()
 
 df_list = [pd.read_csv(ff) for ff in filelist]
 
@@ -61,8 +60,14 @@ for ii in range(n_dfs):
     df_list[ii]['sqrt_qs_error_2term']  = 100 * df_list[ii]['sqrt_qs_error_2term']
     df_list[ii]['sqrt_non_qs_error']  = 100 * df_list[ii]['sqrt_non_qs_error']
 
-    # label = r"$n_{\text{fp}} =%d$"%(df_list[ii]['nfp'].iloc[0])
-    label = "config %d"%(ii+1)
+    nfp = round(df_list[ii]['nfp'].iloc[0])
+    helicity = round(df_list[ii]['helicity'].iloc[0])
+    label = r"$n_{\text{fp}} =%d$"%(nfp)
+    if helicity == 1:
+        label += " QH"
+    else:
+        label += " QA"
+    # label = "config %d"%(ii+1)
     labels.append(label)
 """ Box plot """
 
