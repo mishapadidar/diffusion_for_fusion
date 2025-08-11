@@ -9,7 +9,7 @@ plt.rcParams.update({'font.size': 13})
 colors = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", 
           "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 colors = ['lightcoral', 'goldenrod', "cornflowerblue", "mediumorchid", 'mediumseagreen','orange']
-markers = ['s','o',  'x', '^', '*', 'p', 'D', 'v', '>', '<',  'h']
+markers = ['s','o',  'x', '^', '*', 'p', 'D', '+', 'v', '1', '>', '<',  'h']
 outdir = "./viz/"
 if not os.path.exists(outdir):
     os.makedirs(outdir, exist_ok=True)
@@ -56,10 +56,14 @@ for helicity in df_unique['helicity'].unique():
 """ Plot the out-of-sample devices """
 
 # scatter some misc data points
-ax.scatter([0.36], [4.5], color=colors[2], s=int(2*markersize), marker=markers[4], alpha=1.0, label=r'$n_{\text{fp}}=2$ QA', zorder=5)
-ax.scatter([0.5], [9.0], color=colors[2], s=int(2*markersize), marker=markers[2], alpha=1.0, label=r'$n_{\text{fp}}=3$ QA', zorder=5)
+ax.scatter([0.36], [4.5], color=colors[2], s=int(2*markersize), marker=markers[2], alpha=1.0, label=r'$n_{\text{fp}}=2$ QA', zorder=5)
+ax.scatter([0.5], [18.5], color=colors[2], s=int(2*markersize), marker=markers[3], alpha=1.0, label=r'$n_{\text{fp}}=3$ QA', zorder=5)
+ax.scatter([0.5], [9.0], color=colors[2], s=int(2*markersize), marker=markers[4], alpha=1.0, label=r'$n_{\text{fp}}=3$ QH', zorder=5)
 ax.scatter([1.4], [11.0], color=colors[2], s=int(2*markersize), marker=markers[5], alpha=1.0, label=r'$n_{\text{fp}}=4$ QH', zorder=5)
-ax.scatter([2.5], [17.0], color=colors[2], s=int(2*markersize), marker=markers[3], alpha=1.0, label=r'$n_{\text{fp}}=5$ QH', zorder=5)
+ax.scatter([2.5], [17.0], color=colors[2], s=int(2*markersize), marker=markers[6], alpha=1.0, label=r'$n_{\text{fp}}=5$ QH', zorder=5)
+ax.scatter([2.0], [14.0], color=colors[2], s=int(2*markersize), marker=markers[7], alpha=1.0, label=r'$n_{\text{fp}}=6$ QH', zorder=5)
+ax.scatter([3.7], [11.0], color=colors[2], s=int(2*markersize), marker=markers[8], alpha=1.0, label=r'$n_{\text{fp}}=7$ QH', zorder=5)
+ax.scatter([2.5], [22.0], color=colors[2], s=int(2*markersize), marker=markers[9], alpha=1.0, label=r'$n_{\text{fp}}=8$ QH', zorder=5)
 xlim = ax.get_xlim()
 ylim = ax.get_ylim()
 
