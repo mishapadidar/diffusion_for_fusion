@@ -10,17 +10,14 @@ from diffusion_for_fusion.evaluate_configuration_vmec import evaluate_configurat
 from experiments.conditional_diffusion.load_quasr_data import prepare_data_from_config
 import os
 import time
+import sys
 
 
 """
-Generate data out-of-sample Using one of the following conditions:
+Generate data out-of-sample using one of the conditions. 
 
-    iota, aspect
-    -----------
-    0.36, 4.5  - QA, nfp=2
-    0.5, 9.0   - QA, nfp=3
-    1.4, 11.0  - QH, nfp=4
-    2.5, 17.0  - QH, nfp=7
+Run with,
+    python evaluate_model.py <condition_index>
 """
 
 condition_options = [
@@ -37,13 +34,13 @@ condition_options = [
     ]
 
 # choose one of the conditions from list
-idx_condition = 4
+idx_condition = int(sys.argv[1])
 
 # conditioned on (iota, aspect, nfp, helicity); trained on PCA-50 w/ big model
 indir = "../conditional_diffusion/output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522/"
 
 # number of samples
-n_samples = 35
+n_samples = 32
 
 """ Load up the model"""
 
@@ -73,6 +70,9 @@ iota_condition = condition_options[idx_condition][0]
 aspect_ratio_condition = condition_options[idx_condition][1]
 nfp_condition = condition_options[idx_condition][2]
 helicity_condition = condition_options[idx_condition][3]
+
+print("Using condition:")
+print(f"iota: {iota_condition}, aspect ratio: {aspect_ratio_condition}, nfp: {nfp_condition}, helicity: {helicity_condition}")
 
 # indices of the conditions
 iota_idx = config.conditions.index('mean_iota')
