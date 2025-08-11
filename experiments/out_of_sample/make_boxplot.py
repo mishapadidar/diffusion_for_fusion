@@ -10,8 +10,9 @@ plt.rcParams.update({'font.size': 12})
 colors = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", 
           "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 # colors = ['lightcoral', 'goldenrod', 'mediumseagreen','orange', "lightskyblue", "plum"]
-colors = ['goldenrod', 'mediumseagreen','orange', "lightskyblue", "plum", "teal", "indianred", "darkkhaki"]
-
+colors = ['goldenrod', 'mediumseagreen','orange', "lightskyblue", "plum", "teal", "indianred", "darkkhaki",
+          "darkorange", "royalblue", "crimson", "limegreen", "orchid"]
+        
 
 outdir = "./viz/"
 if not os.path.exists(outdir):
@@ -34,6 +35,12 @@ df_list = [pd.read_csv(ff) for ff in filelist]
 
 """ Clean data """
 labels = []
+
+# drop dataframes with less than 10 data points
+df_list = [df.dropna() for df in df_list if len(df.dropna()) > 10]
+
+# skip nfp2 QH
+df_list = [df for df in df_list if not (df['nfp'].iloc[0] == 2 and df['helicity'].iloc[0] == 1)]
 
 n_dfs = len(df_list)
 for ii in range(n_dfs):
@@ -69,10 +76,13 @@ for ii in range(n_dfs):
         label += " QA"
     # label = "config %d"%(ii+1)
     labels.append(label)
+    print("nfp", nfp, "helicity", helicity)
 """ Box plot """
 
 fig, (ax1,ax2, ax3) = plt.subplots(figsize=(12, 4), ncols=3)
 width = 0.25
+gap = width/4
+space = width + gap
 
 """ Distribution of qs error """
 
@@ -85,12 +95,12 @@ for ii, df in enumerate(df_list):
                         patch_artist=True,
                         medianprops=dict(linewidth=2, color='black'),
                         boxprops=dict(facecolor=colors[ii], color='black'),
-                        widths=width, positions=[left_pos_qs+width*ii],
+                        widths=width, positions=[left_pos_qs+space*ii],
                         tick_labels=[labels[ii]], 
                         label=labels[ii])
 
 ax1.axhline(1, color='black', linestyle='--', linewidth=2)
-ax1.set_xticks(ax1.get_xticks() -width/2, ax1.get_xticklabels(),rotation=60)
+ax1.set_xticks(ax1.get_xticks(), ax1.get_xticklabels(),rotation=75)
 ax1.set_ylabel('$J_{QS}$  [%]')
 ax1.grid(color='lightgray', linestyle='--', linewidth=0.5)
 ax1.set_yscale('log')
@@ -108,13 +118,13 @@ for ii, df in enumerate(df_list):
                         patch_artist=True,
                         medianprops=dict(linewidth=2, color='black'),
                         boxprops=dict(facecolor=colors[ii], color='black'),
-                        widths=width, positions=[left_pos_qs+width*ii],
+                        widths=width, positions=[left_pos_qs+space*ii],
                         tick_labels=[labels[ii]], 
                         label=labels[ii])
 
-ax2.set_xticks(ax2.get_xticks(), ax2.get_xticklabels(),rotation=60)
-ax2.set_ylabel('Error [%]')
-ax2.axhline(0.0, color='black', linestyle='--', linewidth=2)
+ax2.set_xticks(ax2.get_xticks(), ax2.get_xticklabels(),rotation=75)
+ax2.set_ylabel('$J_{A}$  [%]')
+ax2.axhline(5, color='black', linestyle='--', linewidth=2)
 # ax2.legend(loc='upper right')
 ax2.grid(color='lightgray', linestyle='--', linewidth=0.5)
 # print(ax2.get_xticks())
@@ -125,7 +135,7 @@ ax2.set_title("Error from Aspect Ratio Condition", fontsize=11)
 
 
 """ plot error in mean iota from condition """
-feature = 'mean_iota_error'
+feature = 'mean_iota_percent_error'
 left_pos_qs = 1
 
 for ii, df in enumerate(df_list):
@@ -134,14 +144,14 @@ for ii, df in enumerate(df_list):
                         patch_artist=True,
                         medianprops=dict(linewidth=2, color='black'),
                         boxprops=dict(facecolor=colors[ii], color='black'),
-                        widths=width, positions=[left_pos_qs+width*ii],
+                        widths=width, positions=[left_pos_qs+space*ii],
                         tick_labels=[labels[ii]], 
                         label=labels[ii])
 
-ax3.set_xticks(ax3.get_xticks(), ax3.get_xticklabels(),rotation=60)
-ax3.set_ylim(-0.03, 0.25)
-ax3.set_ylabel('Error')
-ax3.axhline(0.0, color='black', linestyle='--', linewidth=2)
+ax3.set_xticks(ax3.get_xticks(), ax3.get_xticklabels(),rotation=75)
+# ax3.set_ylim(-0.03, 0.25)
+ax3.set_ylabel('$J_{\iota}$  [%]')
+ax3.axhline(5, color='black', linestyle='--', linewidth=2)
 ax3.grid(color='lightgray', linestyle='--', linewidth=0.5)
 ax3.set_title("Error from Rotational Transform Condition", fontsize=10)
 
