@@ -42,11 +42,14 @@ df_list = [df.dropna() for df in df_list if len(df.dropna()) > 10]
 # skip nfp2 QH
 df_list = [df for df in df_list if not (df['nfp'].iloc[0] == 2 and df['helicity'].iloc[0] == 1)]
 
+# sort by (nfp, helicity)
+df_list.sort(key=lambda x: (x['nfp'].iloc[0], x['helicity'].iloc[0]))
+
 n_dfs = len(df_list)
 for ii in range(n_dfs):
     print(f"\nDataframe {ii+1}/{n_dfs}")
     print("Success fraction", df_list[ii]['success'].mean())
-
+    
     df_list[ii] = df_list[ii].dropna()
 
     print("Number of data points", len(df_list[ii]))
@@ -77,6 +80,7 @@ for ii in range(n_dfs):
     # label = "config %d"%(ii+1)
     labels.append(label)
     print("nfp", nfp, "helicity", helicity)
+
 """ Box plot """
 
 fig, (ax1,ax2, ax3) = plt.subplots(figsize=(12, 4), ncols=3)
