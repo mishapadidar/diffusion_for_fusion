@@ -22,14 +22,12 @@ Run with,
 
 condition_options = [
     [0.36, 4.5, 2, 0], # QA, nfp=2
-    [1.2, 23.0, 2, 1], # QH, nfp=2
-    # [0.5, 9.0, 3, 0],  # QA, nfp=3
     [0.5, 18.5, 3, 0],  # QA, nfp=3
     [0.5, 9.0, 3, 1],  # QH, nfp=3
     [1.4, 11.0, 4, 1],  # QH, nfp=4
     [2.5, 17.0, 5, 1], # QH, nfp=5
-    [2.5, 17.0, 6, 1], # QH, nfp=6
-    [4.3, 10.0, 7, 1], # QH, nfp=7
+    [2.0, 14.0, 6, 1], # QH, nfp=6
+    [3.7, 11.0, 7, 1], # QH, nfp=7
     [3.5, 22.0, 8, 1] # QH, nfp=8
     ]
 
@@ -40,7 +38,7 @@ idx_condition = int(sys.argv[1])
 indir = "../conditional_diffusion/output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522/"
 
 # number of samples
-n_samples = 32
+n_samples = 10
 
 """ Load up the model"""
 
@@ -126,7 +124,19 @@ for ii, xx in enumerate(X_raw):
     print(f"config {ii}/{n_samples}")
 
     # evaluate the configuration
-    metrics, _ = evaluate_configuration_vmec(xx, round(nfp_condition), helicity=round(helicity_condition), vmec_input="../../diffusion_for_fusion/input.nfp4_template")
+    try:
+        metrics, _ = evaluate_configuration_vmec(xx, round(nfp_condition), helicity=round(helicity_condition), vmec_input="../../diffusion_for_fusion/input.nfp4_template")
+    except:
+        print("Error evaluating configuration, skipping...")
+        metrics = {
+            'sqrt_qs_error_boozer': np.nan,
+            'sqrt_qs_error_2term': np.nan,
+            'sqrt_non_qs_error': np.nan,
+            'aspect_ratio': np.nan,
+            'iota_edge': np.nan,
+            'mean_iota': np.nan,
+            'success': False
+        }
 
     # collect the data
     data['sqrt_qs_error_boozer'][ii] = metrics['sqrt_qs_error_boozer']

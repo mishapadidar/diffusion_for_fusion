@@ -31,7 +31,7 @@ image_filelist = glob.glob("./viz/surface_*.png")
 data_filelist.sort()
 image_filelist.sort()
 
-fig, ax = plt.subplots(figsize=(14, 6), nrows=2, ncols=len(data_filelist), sharey=False)
+fig, ax = plt.subplots(figsize=(18, 6), nrows=2, ncols=len(data_filelist), sharey=False)
 
 for ii, datafile in enumerate(data_filelist):
     ax1 = ax[0][ii]

@@ -34,8 +34,8 @@ Prior to running this script, run evaluate_model.py to generate the diffusion sa
 
 
 
-ntheta = 256
-nphi = 257
+ntheta = 511
+nphi = 512
 
 
 # load model evaluations
@@ -49,7 +49,7 @@ X_list = [np.load(ff) for ff in X_filelist]
 
 config_list = []
 for ii, df in enumerate(df_list):
-    print("")
+    print("")    
     # find index of configuration with median qs_error
     # median_qs_error = df['sqrt_non_qs_error'].min()
     # idx_best = df['sqrt_non_qs_error'].sub(median_qs_error).abs().idxmin()
