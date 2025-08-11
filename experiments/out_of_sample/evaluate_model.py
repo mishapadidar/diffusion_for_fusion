@@ -25,12 +25,15 @@ Generate data out-of-sample Using one of the following conditions:
 
 condition_options = [
     [0.36, 4.5, 2, 0], # QA, nfp=2
-    [0.36, 4.5, 2, 1], # QH, nfp=2
-    [0.5, 9.0, 3, 0],  # QA, nfp=3
+    [1.2, 23.0, 2, 1], # QH, nfp=2
+    # [0.5, 9.0, 3, 0],  # QA, nfp=3
+    [0.5, 18.5, 3, 0],  # QA, nfp=3
     [0.5, 9.0, 3, 1],  # QH, nfp=3
     [1.4, 11.0, 4, 1],  # QH, nfp=4
     [2.5, 17.0, 5, 1], # QH, nfp=5
-    [2.5, 17.0, 6, 1] # QH, nfp=6
+    [2.5, 17.0, 6, 1], # QH, nfp=6
+    [4.3, 10.0, 7, 1], # QH, nfp=7
+    [3.5, 22.0, 8, 1] # QH, nfp=8
     ]
 
 # choose one of the conditions from list
