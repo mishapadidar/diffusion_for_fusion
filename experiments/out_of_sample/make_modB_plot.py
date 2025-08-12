@@ -22,6 +22,7 @@ if not os.path.exists(outdir):
 Plot |B| data to show quasi-symmetry alongside an image of the stellarator
 
 Prior to running this script, run generate_modB_data.py to generate the |B| data.
+Then manually create images of the corresponding stellarators in paraview using the .vts files.
 """
 
 
