@@ -31,6 +31,19 @@ image_filelist = glob.glob("./viz/surface_*.png")
 data_filelist.sort()
 image_filelist.sort()
 
+# sort by nfp, helicity
+def sort_key(filename):
+    parts = filename.split('_')
+    if 'pickle' in filename:
+        nfp = int(parts[5])
+        helicity = int(parts[7])
+    elif 'png' in filename:
+        nfp = int(parts[4])
+        helicity = int(parts[6])
+    return (nfp, helicity)
+data_filelist.sort(key=sort_key)
+image_filelist.sort(key=sort_key)
+
 fig, ax = plt.subplots(figsize=(18, 6), nrows=2, ncols=len(data_filelist), sharey=False)
 
 for ii, datafile in enumerate(data_filelist):
@@ -72,7 +85,7 @@ for ii, datafile in enumerate(data_filelist):
     else:
         title += " QA"
 
-    ax1.set_title(title, fontsize=12)
+    ax1.set_title(title, fontsize=16)
 
 
 plt.tight_layout()
