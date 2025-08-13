@@ -183,12 +183,13 @@ outdir = "./output/"
 if not os.path.exists(outdir):
     os.makedirs(outdir, exist_ok=True)
 # save samples
-outfilename = outdir + f'diffusion_samples_local_pca_{n_local_pca}_nfp_{target_nfp}.npy'
+outfilename = outdir + f'diffusion_samples_local_pca_{n_local_pca}_nfp_{target_nfp}'
 if os.path.exists(outfilename + '.npy'):
     existing_samples = np.load(outfilename + '.npy')
     X_samples = np.concatenate([existing_samples, X_samples], axis=0)
 np.save(outfilename, X_samples)
 print(f"Samples saved to {outfilename}")
+print("total samples:", X_samples.shape[0])
 
 # save metrics
 outfilename = outdir + f'diffusion_metrics_local_pca_{n_local_pca}_nfp_{target_nfp}.csv'
