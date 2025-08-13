@@ -9,17 +9,42 @@ from diffusion_for_fusion.ddpm_fusion import from_standard, to_standard
 from diffusion_for_fusion.evaluate_configuration_vmec import evaluate_configuration as evaluate_configuration_vmec
 from experiments.conditional_diffusion.load_quasr_data import prepare_data_from_config
 import os
+import sys
 import time
+
+"""
+Evaluate the trained model on conditions from the training data.
+
+    python evaluate_model.py n_samples target_nfp
+
+Args:
+    n_samples (int): number of samples to generate
+    target_nfp (int, str): either "all" or the integer nfp value. 
+        Downselects the conditions to only those with the given nfp value.
+
+"""
+
 
 # conditioned on (iota, aspect, nfp, helicity); trained on PCA-50 w/ big model
 indir = "../conditional_diffusion/output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522/"
 
 # sample parameters
-n_samples = 10
-n_local_pca = 661
+n_samples = int(sys.argv[1])
+target_nfp = sys.argv[2]
 
+# sample only a subset of the data
+if target_nfp == "all":
+    fix_nfp = False
+else:
+    target_nfp = int(target_nfp)
+    fix_nfp = True
+
+print("Sampling n_samples =", n_samples, "with target_nfp =", target_nfp)
+
+""" Load the model and generate conditions """
 
 # turn on/off local PCA
+n_local_pca = 661
 use_local_pca = n_local_pca < 661
 
 config_pickle = indir+"config.pickle"
@@ -44,6 +69,10 @@ X_raw = from_standard(X_train, X_mean, X_std)
 X_raw = pca.inverse_transform(X_raw)
 n_dim_raw = np.shape(X_raw)[1]  # number of dimensions in the raw data
 
+# downample conditions
+if fix_nfp:
+    Y_train = Y_train[Y_raw[:, config.conditions.index('nfp')] == target_nfp]
+
 # get random condition
 seed = int(time.time()) % (2**32 - 1)  # Use current time to generate a seed
 cond_samples = generate_conditions_for_eval(Y_train, batch_size = n_samples, from_train=True, seed=seed, as_tensor = True)
@@ -51,16 +80,6 @@ cond_samples = generate_conditions_for_eval(Y_train, batch_size = n_samples, fro
 # map conditions to the raw data space
 cond_samples_raw = from_standard(cond_samples, Y_mean, Y_std)
 
-
-# # uncomment to use figure 11 conditions
-# print(config.conditions)
-# idx = ((np.abs(Y_raw[:, 0] - 2.30)/2.30 < 0.001) & (np.abs(Y_raw[:, 1] - 12)/12 < 0.1)
-#     & (Y_raw[:, 2] == 4) & (Y_raw[:, 3] == 1))
-# X_train = X_train[idx]
-# Y_train = Y_train[idx]
-# X_raw = X_raw[idx]
-# Y_raw = Y_raw[idx]
-# cond_samples = torch.tensor(Y_train).type(torch.float32)
 
 """ Evaluate the sampled configuration """
 
@@ -164,7 +183,7 @@ outdir = "./output/"
 if not os.path.exists(outdir):
     os.makedirs(outdir, exist_ok=True)
 # save samples
-outfilename = outdir + f'diffusion_samples_local_pca_{n_local_pca}'
+outfilename = outdir + f'diffusion_samples_local_pca_{n_local_pca}_nfp_{target_nfp}.npy'
 if os.path.exists(outfilename + '.npy'):
     existing_samples = np.load(outfilename + '.npy')
     X_samples = np.concatenate([existing_samples, X_samples], axis=0)
@@ -172,7 +191,7 @@ np.save(outfilename, X_samples)
 print(f"Samples saved to {outfilename}")
 
 # save metrics
-outfilename = outdir + f'diffusion_metrics_local_pca_{n_local_pca}.csv'
+outfilename = outdir + f'diffusion_metrics_local_pca_{n_local_pca}_nfp_{target_nfp}.csv'
 # df = pd.DataFrame(data)
 # append to existing file if it exists
 if os.path.exists(outfilename):

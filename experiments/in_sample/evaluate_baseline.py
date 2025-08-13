@@ -8,19 +8,39 @@ from diffusion_for_fusion.ddpm_fusion import from_standard, to_standard
 # from diffusion_for_fusion.evaluate_configuration_sheet_curent import evaluate_configuration as evaluate_configuration_sheet
 from diffusion_for_fusion.evaluate_configuration_vmec import evaluate_configuration as evaluate_configuration_vmec
 from experiments.conditional_diffusion.load_quasr_data import prepare_data_from_config
-import os
+import os, sys
 import time
 
 """
 Evaluate the training data used to train the conditional diffusion model.
 This provides a performance baseline for the model -- it can't be better than the training data.
+
+    python evaluate_baseline.py n_samples target_nfp
+
+Args:
+    n_samples (int): number of samples to generate
+    target_nfp (int, str): either "all" or the integer nfp value. 
+        Downselects the conditions to only those with the given nfp value.
+
 """
 
 # conditioned on (iota, aspect, nfp, helicity); trained on PCA-50 w/ big model
 indir = "../conditional_diffusion/output/mean_iota_aspect_ratio_nfp_helicity/run_uuid_0278f98c-aaff-40ce-a7cd-b21a6fac5522/"
 
 # sample parameters
-n_samples = 10
+n_samples = int(sys.argv[1])
+target_nfp = sys.argv[2]
+
+# sample only a subset of the data
+if target_nfp == "all":
+    fix_nfp = False
+else:
+    target_nfp = int(target_nfp)
+    fix_nfp = True
+
+print("Sampling n_samples =", n_samples, "with target_nfp =", target_nfp)
+
+""" Load samples """
 
 config_pickle = indir+"config.pickle"
 model_path = indir+"model.pth"
@@ -36,32 +56,6 @@ Y_raw = from_standard(Y_train, Y_mean, Y_std)
 X_raw = from_standard(X_train, X_mean, X_std)
 X_raw = pca.inverse_transform(X_raw)
 
-# # uncomment to use figure 11 conditions
-# print(config.conditions)
-# idx = ((np.abs(Y_raw[:, 0] - 2.30)/2.30 < 0.001) & (np.abs(Y_raw[:, 1] - 12)/12 < 0.1)
-#     & (Y_raw[:, 2] == 4) & (Y_raw[:, 3] == 1))
-# X_train = X_train[idx]
-# Y_train = Y_train[idx]
-# X_raw = X_raw[idx]
-# Y_raw = Y_raw[idx]
-# cond_samples = torch.tensor(Y_train).type(torch.float32)
-
-# # plot data
-# import matplotlib.pyplot as plt
-# local_pca = PCA(n_components=2, svd_solver='full')
-# X_raw_pca = local_pca.fit_transform(X_raw)
-# plt.scatter(X_raw_pca[:, 0], X_raw_pca[:, 1], label='Raw Data')
-# X_plot = pca.fit_transform(X_local)
-# plt.scatter(X_plot[:, 0], X_plot[:, 1], label='Sampled Data', alpha=0.5)
-# plt.legend(loc='upper right')
-# plt.show()
-
-# downsample
-idx_samples = np.random.choice(len(X_raw), n_samples, replace=False)
-X_samples = X_raw[idx_samples]
-Y_samples = Y_raw[idx_samples]
-
-
 # indices of the conditions
 iota_idx = config.conditions.index('mean_iota')
 aspect_idx = config.conditions.index('aspect_ratio')
@@ -71,6 +65,18 @@ helicity_idx = config.conditions.index('helicity')
 print("iota index:", iota_idx)
 print("nfp index:", nfp_idx)
 print("helicity index:", helicity_idx)
+
+# only keep data with the target nfp
+if fix_nfp:
+    idx_keep = np.where(np.round(Y_raw[:, nfp_idx]).astype(int) == target_nfp)[0]
+    print(f"Keeping {len(idx_keep)}/{len(Y_raw)} samples with nfp={target_nfp}.")
+    X_raw = X_raw[idx_keep]
+    Y_raw = Y_raw[idx_keep]
+
+# downsample
+idx_samples = np.random.choice(len(X_raw), n_samples, replace=False)
+X_samples = X_raw[idx_samples]
+Y_samples = Y_raw[idx_samples]
 
 
 """ Evaluate the data """
@@ -125,7 +131,7 @@ outdir = "./output/"
 if not os.path.exists(outdir):
     os.makedirs(outdir, exist_ok=True)
 # save samples
-outfilename = outdir + f'baseline_samples'
+outfilename = outdir + f'baseline_samples_nfp_{target_nfp}'
 # np.save(outfilename, X_samples)
 if os.path.exists(outfilename + '.npy'):
     existing_samples = np.load(outfilename + '.npy')
@@ -134,7 +140,7 @@ np.save(outfilename, X_samples)
 print(f"Samples saved to {outfilename}")
 
 # save metrics
-outfilename = outdir + f'baseline_metrics.csv'
+outfilename = outdir + f'baseline_metrics_nfp_{target_nfp}.csv'
 # df = pd.DataFrame(data)
 # append to existing file if it exists
 if os.path.exists(outfilename):
