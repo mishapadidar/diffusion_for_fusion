@@ -56,7 +56,7 @@ for ii, df in enumerate(df_list):
         continue
 
     # idx_best = df['sqrt_non_qs_error'].idxmin()
-    if (df['nfp'] > 3).any():
+    if (df['nfp'] > 2).any():
         idx_downsample = (df['aspect_ratio'] < 12.0) & (df['helicity'] == 1)
     else:
         idx_downsample = df['aspect_ratio'] < 12.0
