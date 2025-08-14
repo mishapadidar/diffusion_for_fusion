@@ -55,10 +55,18 @@ for ii, df in enumerate(df_list):
         print("Skipping all nfp")
         continue
 
-    idx_best = df['sqrt_non_qs_error'].idxmin()
+    # idx_best = df['sqrt_non_qs_error'].idxmin()
+    if (df['nfp'] > 3).any():
+        idx_downsample = (df['aspect_ratio'] < 12.0) & (df['helicity'] == 1)
+    else:
+        idx_downsample = df['aspect_ratio'] < 12.0
+    XX = X_list[ii][idx_downsample]
+    df = df[idx_downsample].reset_index(drop=True)
+    # idx_best = df['sqrt_non_qs_error'].idxmin()
+    idx_best = df['sqrt_qs_error_2term'].idxmin()
     nfp = round(df.iloc[idx_best]['nfp'])
     helicity = round(df.iloc[idx_best]['helicity'])
-    xx = X_list[ii][idx_best]
+    xx = XX[idx_best]
 
     print("selected configuration", ii, "with qs error", df['sqrt_non_qs_error'].min(), "nfp", nfp, "helicity", helicity)
 
