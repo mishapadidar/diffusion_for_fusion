@@ -49,14 +49,19 @@ X_list = [np.load(ff) for ff in X_filelist]
 
 config_list = []
 for ii, df in enumerate(df_list):
-    print("")    
-    # find index of configuration with median qs_error
-    # median_qs_error = df['sqrt_non_qs_error'].min()
-    # idx_best = df['sqrt_non_qs_error'].sub(median_qs_error).abs().idxmin()
-    idx_best = df['sqrt_non_qs_error'].idxmin()
+    print("")
+
+    # idx_best = df['sqrt_non_qs_error'].idxmin()
+
+    # idx_downsample = df['aspect_ratio'] < 12.0
+    # XX = X_list[ii][idx_downsample]
+    # df = df[idx_downsample].reset_index(drop=True)
+    XX = X_list[ii]
+    # idx_best = df['sqrt_non_qs_error'].idxmin()
+    idx_best = df['sqrt_qs_error_2term'].idxmin()
     nfp = round(df.iloc[idx_best]['nfp'])
     helicity = round(df.iloc[idx_best]['helicity'])
-    xx = X_list[ii][idx_best]
+    xx = XX[idx_best]
 
     print("selected configuration", ii, "with qs error", df['sqrt_non_qs_error'].min(), "nfp", nfp, "helicity", helicity)
 

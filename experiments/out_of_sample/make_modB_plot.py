@@ -73,7 +73,7 @@ for ii, datafile in enumerate(data_filelist):
     # plot the image
     img = plt.imread(image_filelist[ii])
     ax1.imshow(img, 
-            extent=[-0.25, 1.25, -0.05, 1.05],
+            extent=[-0.1, 1.1, -0.0, 1.0],
             zorder=100, aspect='auto', clip_on=True, interpolation='bilinear')
     ax1.set_xlim([0, 1])
     ax1.set_ylim([0, 1])
