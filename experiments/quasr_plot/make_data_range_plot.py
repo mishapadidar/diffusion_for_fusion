@@ -86,8 +86,8 @@ https://quasr.flatironinstitute.org/model/0000952
 img = plt.imread("./viz/serial0000952.png")
 device_iota = 0.1
 device_aspect = 20
-x_left = -0.3
-x_right = 0.5
+x_left = -0.5
+x_right = 0.7
 y_bottom = 0.5
 y_top = 1.0
 ax2.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
@@ -135,12 +135,12 @@ serial2022065 (iota = 2.9, aspect = 11.99 QH)
 img = plt.imread("./viz/serial2022065.png")
 device_iota = 2.9
 device_aspect = 11.99
-x_left = 0.4
+x_left = 0.5
 x_right = 1.7
 # y_bottom = 0.5
 # y_top = 1.0
-y_bottom = -0.02
-y_top = 0.45
+y_bottom = 0.0
+y_top = 0.5
 ax2.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
 
 # draw letter on the right plot
@@ -186,9 +186,9 @@ img = plt.imread("./viz/serial1328281.png")
 device_iota = 1.2
 device_aspect = 8.0
 x_left = -0.5
-x_right = 0.8
-y_bottom = -0.0
-y_top = 0.45
+x_right = 0.7
+y_bottom = 0.0
+y_top = 0.5
 ax2.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
 
 # place a text box in upper left in axes coords
@@ -234,11 +234,11 @@ img = plt.imread("./viz/serial0040380.png")
 device_iota = 0.1
 device_aspect = 4.0
 x_left = 0.5
-x_right = 1.5
+x_right = 1.7
 # y_bottom = -0.01
 # y_top = 0.4
-y_bottom = 0.55
-y_top = 0.9
+y_bottom = 0.5
+y_top = 1
 ax2.imshow(img, extent=[x_left, x_right, y_bottom, y_top], zorder=100, aspect='auto', clip_on=False)
 
 # place a text box in upper left in axes coords
