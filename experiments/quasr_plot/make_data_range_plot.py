@@ -5,7 +5,7 @@ import os
 
 plt.rc('font', family='serif')
 # plt.rc('text.latex', preamble=r'\\usepackage{amsmath,bm}')
-plt.rcParams.update({'font.size': 13})
+plt.rcParams.update({'font.size': 15})
 colors = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", 
           "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 colors = ['lightcoral', 'goldenrod', "cornflowerblue", "mediumorchid", 'mediumseagreen','orange']
@@ -277,6 +277,7 @@ ax.set_aspect('auto')
 
 ax.set_xlabel(r'Mean Rotational Transform $\bar{\iota}$')
 ax.set_ylabel('Aspect Ratio')
-ax.legend(loc='upper right', fontsize=10, framealpha=1.0)
+# ax.legend(loc='upper right', fontsize=14, framealpha=0.9)
+ax.legend(bbox_to_anchor=(-0.005, 1.16), ncol=5, fontsize=12,loc='upper left',columnspacing=0.9,handletextpad=0.05)
 plt.savefig(outdir + 'quasr_data_range.pdf', bbox_inches='tight', format='pdf')
 plt.show()
