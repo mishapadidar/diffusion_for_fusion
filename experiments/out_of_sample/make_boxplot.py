@@ -127,7 +127,7 @@ for ii, df in enumerate(df_list):
                         label=labels[ii])
 
 ax2.set_xticks(ax2.get_xticks(), ax2.get_xticklabels(),rotation=75)
-ax2.set_ylabel('$J_{A}$  [%]')
+ax2.set_ylabel('$c_{A}$  [%]')
 ax2.axhline(5, color='black', linestyle='--', linewidth=2)
 # ax2.legend(loc='upper right')
 ax2.grid(color='lightgray', linestyle='--', linewidth=0.5)
@@ -154,7 +154,7 @@ for ii, df in enumerate(df_list):
 
 ax3.set_xticks(ax3.get_xticks(), ax3.get_xticklabels(),rotation=75)
 # ax3.set_ylim(-0.03, 0.25)
-ax3.set_ylabel('$J_{\iota}$  [%]')
+ax3.set_ylabel('$c_{\iota}$  [%]')
 ax3.axhline(5, color='black', linestyle='--', linewidth=2)
 ax3.grid(color='lightgray', linestyle='--', linewidth=0.5)
 ax3.set_title("Error from Rotational Transform Condition", fontsize=10)

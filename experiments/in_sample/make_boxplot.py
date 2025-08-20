@@ -156,7 +156,7 @@ for ii, group in enumerate(group_list):
                         label='DDPM')
 
 
-ax2.set_ylabel('$J_A$  [%]')
+ax2.set_ylabel('$c_A$  [%]')
 ax2.axhline(5.0, color='black', linestyle='--', linewidth=2)
 ax2.grid(color='lightgray', linestyle='--', linewidth=0.5)
 # ax2.set_yticks([0, 5, 10, 15, 20], labels=['0', '5', '10', '15', '20'])
@@ -191,7 +191,7 @@ for ii, group in enumerate(group_list):
 
 ax3.set_xticks(ax3.get_xticks(), ax3.get_xticklabels(),rotation=75)
 ax3.set_ylim(-1,35)
-ax3.set_ylabel('$J_{\iota}$  [%]')
+ax3.set_ylabel('$c_{\iota}$  [%]')
 ax3.axhline(5.0, color='black', linestyle='--', linewidth=2)
 ax3.grid(color='lightgray', linestyle='--', linewidth=0.5)
 ax3.set_title("Error from Rotational Transform Condition", fontsize=10)

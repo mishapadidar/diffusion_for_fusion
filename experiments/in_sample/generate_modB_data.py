@@ -55,25 +55,33 @@ for ii, df in enumerate(df_list):
         print("Skipping all nfp")
         continue
 
-    # idx_best = df['sqrt_non_qs_error'].idxmin()
+    df['mean_iota_error'] = 100 * (df['mean_iota'] - df['mean_iota_condition']).abs() / df['mean_iota_condition']
+    df['aspect_ratio_error'] = 100 * (df['aspect_ratio'] - df['aspect_ratio_condition']).abs() / df['aspect_ratio_condition']
+
+    idx_downsample = (df['aspect_ratio'] < 12.0) & (df['mean_iota_error'] < 5) & (df['aspect_ratio_error'] < 5)
     if (df['nfp'] > 2).any():
-        idx_downsample = (df['aspect_ratio'] < 12.0) & (df['helicity'] == 1)
-    else:
-        idx_downsample = df['aspect_ratio'] < 12.0
+        idx_downsample = idx_downsample & (df['helicity'] == 1)
     XX = X_list[ii][idx_downsample]
     df = df[idx_downsample].reset_index(drop=True)
-    # idx_best = df['sqrt_non_qs_error'].idxmin()
+    print("Number of configurations after downsampling:", len(df))
+
     idx_best = df['sqrt_qs_error_2term'].idxmin()
     nfp = round(df.iloc[idx_best]['nfp'])
     helicity = round(df.iloc[idx_best]['helicity'])
+    mean_iota_condition = df.iloc[idx_best]['mean_iota_condition']
+    aspect_ratio_condition = df.iloc[idx_best]['aspect_ratio_condition']
     xx = XX[idx_best]
 
     print("selected configuration", ii, "with qs error", df['sqrt_non_qs_error'].min(), "nfp", nfp, "helicity", helicity)
-
+    print("mean_iota_condition", mean_iota_condition, "aspect_ratio_condition", aspect_ratio_condition)
 
     # evaluate the configuration
     metrics, vmec = evaluate_configuration_vmec(xx, nfp, helicity=helicity, vmec_input="../../diffusion_for_fusion/input.nfp4_template")
     print(f"success={metrics['success']}, sqrt_non_qs_error={metrics['sqrt_non_qs_error']}, aspect_ratio={metrics['aspect_ratio']}, mean_iota={metrics['mean_iota']}")
+    iota_err = 100 * abs(metrics['mean_iota'] - mean_iota_condition) / mean_iota_condition
+    print("c_iota [%]", iota_err)
+    aspect_err = 100 * abs(metrics['aspect_ratio'] - aspect_ratio_condition) / aspect_ratio_condition
+    print("c_aspect [%]", aspect_err)
 
     # get |B| in boozer coordinates
     booz = Boozer(vmec)
