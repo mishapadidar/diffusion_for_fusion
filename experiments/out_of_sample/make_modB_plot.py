@@ -86,11 +86,11 @@ for ii, datafile in enumerate(data_filelist):
     else:
         title += " QA"
 
-    ax1.set_title(title, fontsize=16)
+    ax1.set_title(title, fontsize=23)
 
 
 plt.tight_layout()
-plt.savefig(outdir + 'out_of_sample_contours.pdf', bbox_inches='tight', format='pdf')
+plt.savefig(outdir + 'out_of_sample_contours.svg', bbox_inches='tight', format='svg')
 plt.show()
 
 
