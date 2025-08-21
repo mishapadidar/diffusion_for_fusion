@@ -6,7 +6,7 @@ import glob
 
 plt.rc('font', family='serif')
 # plt.rc('text.latex', preamble=r'\\usepackage{amsmath,bm}')
-plt.rcParams.update({'font.size': 12})
+plt.rcParams.update({'font.size': 15})
 colors = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", 
           "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 # colors = ['lightcoral', 'goldenrod', 'mediumseagreen','orange', "lightskyblue", "plum"]
@@ -109,7 +109,7 @@ ax1.set_ylabel('$J_{QS}$  [%]')
 ax1.grid(color='lightgray', linestyle='--', linewidth=0.5)
 ax1.set_yscale('log')
 ax1.set_yticks([0.1, 1, 10],labels=['0.1', '1', '10'])
-ax1.set_title("Quasisymmetry Error", fontsize=11)
+# ax1.set_title("Quasisymmetry Error", fontsize=11)
 
 
 # """ plot error in aspect ratio from condition """
@@ -127,14 +127,14 @@ for ii, df in enumerate(df_list):
                         label=labels[ii])
 
 ax2.set_xticks(ax2.get_xticks(), ax2.get_xticklabels(),rotation=75)
-ax2.set_ylabel('$c_{A}$  [%]')
+ax2.set_ylabel('$c_{A}$  [%]', labelpad=-7)
 ax2.axhline(5, color='black', linestyle='--', linewidth=2)
 # ax2.legend(loc='upper right')
 ax2.grid(color='lightgray', linestyle='--', linewidth=0.5)
 # print(ax2.get_xticks())
 # print(ax2.get_xticklabels())
 # ax2.set_xticks(ax2.get_xticks(), ax2.get_xticklabels(),rotation=60)
-ax2.set_title("Error from Aspect Ratio Condition", fontsize=11)
+# ax2.set_title("Error from Aspect Ratio Condition", fontsize=11)
 
 
 
@@ -157,7 +157,7 @@ ax3.set_xticks(ax3.get_xticks(), ax3.get_xticklabels(),rotation=75)
 ax3.set_ylabel('$c_{\iota}$  [%]')
 ax3.axhline(5, color='black', linestyle='--', linewidth=2)
 ax3.grid(color='lightgray', linestyle='--', linewidth=0.5)
-ax3.set_title("Error from Rotational Transform Condition", fontsize=10)
+# ax3.set_title("Error from Rotational Transform Condition", fontsize=10)
 
 plt.tight_layout()
 plt.savefig("./viz/boxplot_out_of_sample_performance.pdf", bbox_inches='tight', format='pdf')

@@ -6,7 +6,7 @@ import glob
 
 plt.rc('font', family='serif')
 # plt.rc('text.latex', preamble=r'\\usepackage{amsmath,bm}')
-plt.rcParams.update({'font.size': 12})
+plt.rcParams.update({'font.size': 15})
 colors = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", 
           "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
 colors = ['lightcoral', 'goldenrod', 'mediumseagreen','orange', "lightskyblue", "plum"]
@@ -124,13 +124,13 @@ for ii, group in enumerate(group_list):
 
 ax1.set_ylabel('$J_{QS}$  [%]')
 ax1.grid(color='lightgray', linestyle='--', linewidth=0.5)
-ax1.legend(loc='lower right', fontsize=10, framealpha=1.0)
+ax1.legend(loc='lower right', fontsize=12, framealpha=1.0)
 # xtick = [left_pos_qs+3*width*ii for ii in range(len(nfp_list)+1)]
 ax1.set_xticks(xtick_pos,labels=xtick_label, rotation=75)
 ax1.set_yscale('log')
 ax1.set_yticks([0.1, 1, 10],labels=['0.1', '1', '10'])
 ax1.axhline(1.0, color='black', linestyle='--', linewidth=2)
-ax1.set_title("Quasisymmetry Error", fontsize=11)
+# ax1.set_title("Quasisymmetry Error", fontsize=12)
 
 
 """ plot error in aspect ratio from condition """
@@ -162,7 +162,7 @@ ax2.grid(color='lightgray', linestyle='--', linewidth=0.5)
 # ax2.set_yticks([0, 5, 10, 15, 20], labels=['0', '5', '10', '15', '20'])
 ax2.set_ylim(-1,35)
 ax2.set_xticks(ax2.get_xticks(), ax2.get_xticklabels(),rotation=75)
-ax2.set_title("Error from Aspect Ratio Condition", fontsize=11)
+# ax2.set_title("Error from Aspect Ratio Condition", fontsize=12)
 
 
 
@@ -194,7 +194,7 @@ ax3.set_ylim(-1,35)
 ax3.set_ylabel('$c_{\iota}$  [%]')
 ax3.axhline(5.0, color='black', linestyle='--', linewidth=2)
 ax3.grid(color='lightgray', linestyle='--', linewidth=0.5)
-ax3.set_title("Error from Rotational Transform Condition", fontsize=10)
+# ax3.set_title("Error from Rotational Transform Condition", fontsize=12)
 
 plt.tight_layout()
 plt.savefig("./viz/boxplot_in_sample_performance.pdf", bbox_inches='tight', format='pdf')
