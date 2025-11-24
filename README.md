@@ -1,4 +1,9 @@
-# diffusion_for_fusion
+# Diffusion for Fusion: Designing Stellarators with Generative AI
+This repo contains the code accompanying the paper "Diffusion for Fusion: Designing Stellarators with Generative AI" by Misha Padidar, Teresa Huang, Andrew Giuliani, Marina Spivak in the AI for Science workshop at Neurips, 2025.
+
+## Directory layout
+`experiments` contains the numerical experiments for the paper and `diffusion_for_fusion` contains the modules and classes used.
+
 
 ## Installation instructions on Mac M3
 1. Install pyenv with brew
@@ -44,3 +49,4 @@
     ```
     export PYTHONPATH="${PYTHONPATH}:/Users/mpadidar/code/ml/diffusion_for_fusion"
     ```
+7. VMEC is needed for evaluating configurations. While [VMEC2000](https://github.com/hiddenSymmetries/VMEC2000) was used for the numerical experiments, [VMEC++](https://github.com/proximafusion/vmecpp) should be easier to install.
