@@ -5,6 +5,6 @@ Each subdirectory contains the scripts used to make plots for the paper.
 - `stellarator_example` contains the scripts used to make figure 1.
 - `quasr_plot` contains the scripts used to make figure 2.
 - `in_sample` contains the scripts used to make the in-sample results in figures 3,4.
-- `out_of_sample` contains the scripts used to make the in-sample results in figures 3,5.
+- `out_of_sample` contains the scripts used to make the out-of-sample results in figures 3,5.
 - `dimensionality_reduction` contains the scripts used to make figure 6.
 - `vanilla_diffusion` contains scripts to train a vanilla (non-conditional) diffusion model.
