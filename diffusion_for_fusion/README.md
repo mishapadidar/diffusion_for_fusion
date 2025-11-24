@@ -1,8 +1,8 @@
-In this directory we provide modules to do the heavy computations such as 
-building a diffusion model and running the vacuum solver.
+# Diffusion for Fusion
+This directory contains the modules used to train and evalute the diffusion models.
 
-The conditional and vanilla (unconditional) diffusion models are stored in `ddpm_conditional_diffusion.py` and `ddpm_fusion.py`.
-
-To evaluate the properties of stellarators we use `evaluate_configuration.py` which calls upon the vacuum solver `sheet_current.py`.
-
-`autoencoder.py` contains code to train an autoencoder.
+- `ddpm_fusion.py` contains a module to train an unconditional diffusion model.
+- `ddpm_conditional_diffusion.py` contains a module to train a conditional diffusion model.
+- `evaluate_configuration_vmec.py` is used to evaluate generated configurations with VMEC.
+- `input.nfp4_template` is a template file for VMEC.
+- `fourier_interpolation.py` is used to interpolate periodic functions.
