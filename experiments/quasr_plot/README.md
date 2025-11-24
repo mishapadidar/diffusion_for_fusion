@@ -1,3 +1,4 @@
-This directory is dedicated to making two plots
-    1. The QUASR data range plot: a plot of the (iota, aspect) ratio in QUASR. `make_data_range_plot.py`
-    2. The stellarator example: a plot showing a stellarator, its cross sections, and quasisymmetry error. `plot_stellarator_example.py`
+# Plot the QUASR data
+Plot the data in QUASR for Figure 2.
+- `make_data_range_plot.py` makes the plot.
+- `write_surface_vtk.py` wrote `.vtk` files for plotting the devices (A,B,C,D) in paraview.
