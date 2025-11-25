@@ -1,5 +1,7 @@
 # Diffusion for Fusion: Designing Stellarators with Generative AI
-This repo contains the code accompanying the paper "Diffusion for Fusion: Designing Stellarators with Generative AI" by Misha Padidar, Teresa Huang, Andrew Giuliani, Marina Spivak in the AI for Science workshop at Neurips, 2025.
+This repo contains the code accompanying the paper "Diffusion for Fusion: Designing Stellarators with Generative AI" by Misha Padidar, Teresa Huang, Andrew Giuliani, Marina Spivak in the AI4Science workshop at Neurips, 2025.
+
+Please refer to the official code and data hosted on [Zenodo: DOI 10.5281/zenodo.17713018](https://zenodo.org/records/17713019).
 
 ## Directory layout
 `experiments` contains the numerical experiments for the paper and `diffusion_for_fusion` contains the modules and classes used.
